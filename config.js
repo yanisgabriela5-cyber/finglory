@@ -6,10 +6,10 @@ window.APP_CONFIG = {
   appName: 'FinGlory',
   backend: 'firebase', // 'firebase' o 'supabase'
   firebase: {
-    apiKey: 'TU-API-KEY',
-    authDomain: 'TU-PROYECTO.firebaseapp.com',
-    projectId: 'TU-PROYECTO',
-    appId: 'TU-APP-ID'
+    apiKey: 'AIzaSyCVWVnyekVAP50dxzS5VkfD-8KgSswNsQo',
+    authDomain: 'finglory-711dd.firebaseapp.com',
+    projectId: 'finglory-711dd',
+    appId: '1:777458564779:web:dc5473d5064cdbcccb81ee'
   },
   // Solo si algún día usas Supabase en vez de Firebase (ver schema.sql):
   supabaseUrl: 'https://TU-PROYECTO.supabase.co',
