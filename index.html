@@ -170,7 +170,7 @@ section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var
   .mlist.fx tr{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"t m x" "s s s";row-gap:8px}
   .mlist.fx .c-t{grid-area:t}.mlist.fx .m{grid-area:m}.mlist.fx .c-x{grid-area:x}.mlist.fx .c-s{grid-area:s}
 }
-.pbar{display:flex;justify-content:center;padding:12px max(4vw,16px) 0}
+.pbar{display:flex;flex-direction:column;align-items:center;padding:12px max(4vw,16px) 0}.pnote{font-size:13px;text-align:center;margin:6px 0 0}
 .pbar .seg{margin:0;width:100%;max-width:520px;grid-template-columns:1fr 1fr 1fr;background:var(--card)}
 .pbar .seg button{font-size:14px;padding:0 8px}.pbar .sh{display:none}@media(max-width:600px){.pbar .lg{display:none}.pbar .sh{display:inline}.pbar{padding-top:10px}}
 .seg button[aria-pressed=true]{background:var(--sel);color:var(--onsel);border-color:var(--sel);font-weight:700}
@@ -184,6 +184,15 @@ section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var
 .mlist tr:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}
 #emodal .box{max-height:calc(100vh - 32px);overflow:auto}
 #emodal label{margin-top:12px}
+@media(max-width:600px){.addf .pz{grid-column:1/-1}}
+.plazo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:6px}
+.chip{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;margin-bottom:8px}
+.chip.warn{background:light-dark(#fbe3e8,#4a2233);color:var(--red)}.chip.ok{background:light-dark(#e6f3d0,#2f3a1a);color:var(--grow)}.chip.info{background:light-dark(#efe4ee,#3a2d55);color:var(--ink)}
+.tipnum{font-size:clamp(24px,3vw,30px);font-weight:800;line-height:1.1;margin:4px 0}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.ctrls input,.ctrls select{flex:1 1 90px;width:auto;min-height:40px}
+.ctrls button{min-height:40px}
+.when{font-size:14px;color:var(--soft);margin-top:10px;flex-basis:100%}
 .err{color:var(--red);font-size:14px;margin:8px 0 0}
 .status{font-size:13px;color:var(--soft);margin-top:8px}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--plum);color:var(--snow);border-radius:20px;padding:8px 8px 8px 16px;display:none;align-items:center;gap:10px;z-index:8;max-width:calc(100vw - 32px)}
@@ -223,7 +232,7 @@ pre,.scroll{overflow-x:auto}
   <div class="mnav" id="mnav"><button class="icon" id="prev" aria-label="Mes anterior">‹</button><b id="mlabel"></b><button class="icon" id="next" aria-label="Mes siguiente">›</button></div>
   <a class="me" href="#cuenta" data-view="cuenta" aria-label="Mi cuenta"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
 </header>
-<div class="pbar" id="pbar"><div class="seg per" role="group" aria-label="Periodo"><button type="button" data-per="mes"><span class="lg">Mes completo</span><span class="sh">Mes</span></button><button type="button" data-per="q1">1ª quincena</button><button type="button" data-per="q2">2ª quincena</button></div></div>
+<div class="pbar" id="pbar"><div class="seg per" role="group" aria-label="Periodo"><button type="button" data-per="mes"><span class="lg">Mes completo</span><span class="sh">Mes</span></button><button type="button" data-per="q1">1ª quincena</button><button type="button" data-per="q2">2ª quincena</button></div><p class="sub pnote" id="pnote" hidden>Aquí solo cambia si te muestro cuánto apartar por mes o por quincena.</p></div>
 <section class="band" id="resumen" data-v="inicio"><div class="wrap">
   <div class="remind" id="remind" hidden></div>
   <div class="grid">
@@ -319,12 +328,12 @@ pre,.scroll{overflow-x:auto}
 
 <section class="band" id="metas" data-v="metas"><div class="wrap">
   <h2>Metas con propósito</h2>
-  <p class="sub">Cada meta lleva su "para qué" y, si le pones fecha, cuánto apartar por quincena. Lo que aportas se resta de tu disponible del mes, así ese dinero no se gasta.</p>
+  <p class="sub">Cada meta lleva su "para qué" y un plazo en días, semanas o meses. Te digo cuánto apartar según tu ritmo (por mes o por quincena, arriba). Lo que aportas se resta de tu disponible, así ese dinero no se gasta.</p>
   <div class="cards" id="goals"></div>
   <form class="addf" id="gf">
     <div style="grid-column:span 2"><label for="gname">Nueva meta</label><input id="gname" placeholder="Ej. Abono del auto" required></div>
     <div><label for="gtarget">Monto objetivo</label><input id="gtarget" inputmode="decimal" placeholder="0.00" required></div>
-    <div><label for="gdate">¿Para cuándo?</label><input id="gdate" type="month"></div>
+    <div class="pz"><label for="gplazo">Plazo</label><div class="plazo"><input id="gplazo" type="number" min="1" max="999" inputmode="numeric" placeholder="6"><select id="gunit" aria-label="Unidad del plazo"><option value="d">días</option><option value="w">semanas</option><option value="m" selected>meses</option></select></div></div>
     <div style="grid-column:1/-1"><label for="gwhy">¿Para qué?</label><input id="gwhy" placeholder="Ej. llegar al nuevo trabajo sin depender del bus"></div>
     <button class="pri" type="submit">Añadir meta</button>
   </form>
@@ -333,26 +342,26 @@ pre,.scroll{overflow-x:auto}
 
 <section class="band" id="deseos" data-v="metas"><div class="wrap">
   <h2>Lista de deseos</h2>
-  <p class="sub">Para compras grandes: anótala, espera los días que elijas y luego decide con la cabeza fría. Mientras tanto ves cuánto te alejaría de tus metas.</p>
+  <p class="sub">Para compras grandes: ponle precio y en cuánto tiempo la quieres. Te digo cuánto apartar según tu ritmo y cuánto te alejaría de tus metas, para decidir con la cabeza fría.</p>
   <div class="cards" id="wishes"></div>
   <form class="addf" id="wf">
     <div style="grid-column:span 2"><label for="wname">¿Qué quieres comprar?</label><input id="wname" placeholder="Ej. iPhone nuevo" required></div>
     <div><label for="wprice">Precio</label><input id="wprice" inputmode="decimal" placeholder="0.00" required></div>
-    <div><label for="wwait">Esperar</label><select id="wwait"><option value="3">3 días</option><option value="7" selected>7 días</option><option value="15">15 días</option><option value="30">30 días</option></select></div>
+    <div class="pz"><label for="wplazo">¿En cuánto tiempo?</label><div class="plazo"><input id="wplazo" type="number" min="1" max="999" inputmode="numeric" value="3"><select id="wunit" aria-label="Unidad del plazo"><option value="d">días</option><option value="w">semanas</option><option value="m" selected>meses</option></select></div></div>
     <button class="pri" type="submit">Añadir a la lista</button>
   </form>
+</div></section>
+
+<section class="band" id="tips" data-v="habitos"><div class="wrap">
+  <h2>Tips para ti</h2>
+  <p class="sub" id="tipsum">Salen de analizar tus movimientos del periodo, los que registras a mano y los que importas del banco.</p>
+  <div class="cards" id="tiplist"></div>
 </div></section>
 
 <section class="band" id="hormiga" data-v="habitos"><div class="wrap">
   <h2>Gastos hormiga</h2>
   <p class="sub">Gastos pequeños (menos de $10) que se repiten. Uno solo no parece nada; juntos sí.</p>
   <div id="ants" style="margin-top:12px"></div>
-</div></section>
-
-<section class="band" id="tips" data-v="habitos"><div class="wrap">
-  <h2>Tips para ti</h2>
-  <p class="sub">Salen de tus propios gastos del mes: dónde repites, dónde te pasas y qué puedes hacer distinto sin dejar de vivir.</p>
-  <div class="cards" id="tiplist"></div>
 </div></section>
 
 <section class="band" id="historial" data-v="habitos"><div class="wrap">
@@ -413,7 +422,7 @@ pre,.scroll{overflow-x:auto}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="config.js?v=11"></script>
-<script src="app.js?v=11"></script>
+<script src="config.js?v=13"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>
