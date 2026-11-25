@@ -1,6 +1,9 @@
 {
 // ============ configuración y utilidades ============
-const CFG=Object.assign({appName:'FinGlory',supabaseUrl:'',supabaseAnonKey:''},window.APP_CONFIG||{});
+const CFG=Object.assign({appName:'FinGlory',backend:'firebase',firebase:{},supabaseUrl:'',supabaseAnonKey:''},window.APP_CONFIG||{});
+let fdb=null,fauth=null;
+const clean=o=>JSON.parse(JSON.stringify(o));
+const userDocs=()=>fdb.collection('fg_users').doc(user.uid).collection('docs');
 const GASTOS=['Comida','Transporte y gasolina','Casa y servicios','Celular e internet','Familia','Diezmo y ofrendas','Universidad','Salud','Seguros','Ropa y cuidado personal','Salidas y entretenimiento','Suscripciones','Comisiones bancarias','Otros'];
 const INGRESOS=['Salario','Trabajo extra','Liquidación','Otros ingresos'];
 const ESENCIALES=new Set(['Casa y servicios','Celular e internet','Familia','Diezmo y ofrendas','Universidad','Salud','Seguros','Transporte y gasolina']);
@@ -48,24 +51,30 @@ function allDocs(){const out=[...S.tx,...S.goal,...S.fixed,...S.wish,{kind:'budg
 const saveLocal=()=>{try{localStorage.setItem(LKEY,JSON.stringify(allDocs()))}catch(e){}};
 const loadLocal=()=>{try{const d=JSON.parse(localStorage.getItem(LKEY)||'[]');S=fromDocs(Array.isArray(d)?d:[])}catch(e){S=EMPTY()}};
 async function loadCloud(){
+  if(fdb){const snap=await userDocs().get();S=fromDocs(snap.docs.map(d=>d.data()));lastLoad=Date.now();return}
   const rows=[];
   for(let from=0;;from+=1000){const{data,error}=await sb.from('fg_docs').select('data').range(from,from+999);if(error)throw error;rows.push(...data.map(r=>r.data));if(data.length<1000)break}
-  S=fromDocs(rows);
+  S=fromDocs(rows);lastLoad=Date.now();
 }
-const cloudErr=e=>toast(/quota|limit/i.test(String(e&&e.message))?'Se llenó el espacio de la base de datos.':'No se pudo guardar. Revisa tu conexión.');
+let lastLoad=0;
+const cloudErr=e=>toast(/quota|limit|resource-exhausted/i.test(String(e&&(e.code||e.message)))?'Se llenó el límite gratis de la base de datos por hoy.':'No se pudo guardar. Revisa tu conexión.');
 async function put(doc){
   if(mode!=='cloud'){saveLocal();return}
+  if(fdb){try{await userDocs().doc(doc.id).set(clean(doc))}catch(e){cloudErr(e)}return}
   const{error}=await sb.from('fg_docs').upsert({user_id:user.id,id:doc.id,kind:doc.kind,data:doc,updated_at:new Date().toISOString()},{onConflict:'user_id,id'});
   if(error)cloudErr(error);
 }
 async function putMany(docs){
   if(mode!=='cloud'){saveLocal();return true}
   for(let i=0;i<docs.length;i+=400){
+    if(fdb){try{const b=fdb.batch();for(const d of docs.slice(i,i+400))b.set(userDocs().doc(d.id),clean(d));await b.commit()}catch(e){cloudErr(e);return false}continue}
     const{error}=await sb.from('fg_docs').upsert(docs.slice(i,i+400).map(d=>({user_id:user.id,id:d.id,kind:d.kind,data:d,updated_at:new Date().toISOString()})),{onConflict:'user_id,id'});
     if(error){cloudErr(error);return false}}
   return true;
 }
-async function drop(id){if(mode!=='cloud'){saveLocal();return}const{error}=await sb.from('fg_docs').delete().eq('id',id);if(error)toast('No se pudo borrar.')}
+async function drop(id){if(mode!=='cloud'){saveLocal();return}
+  if(fdb){try{await userDocs().doc(id).delete()}catch(e){toast('No se pudo borrar.')}return}
+  const{error}=await sb.from('fg_docs').delete().eq('id',id);if(error)toast('No se pudo borrar.')}
 function upsert(doc,quiet){const arr=S[doc.kind];const i=arr.findIndex(x=>x.id===doc.id);i<0?arr.push(doc):arr[i]=doc;if(!quiet)render();return put(doc)}
 function remove(kind,id,msg){const arr=S[kind];const i=arr.findIndex(x=>x.id===id);if(i<0)return;last=arr[i];arr.splice(i,1);render();drop(id);toast(msg||'Eliminado',true)}
 function setSingle(kind,val){S[kind]=Object.assign({},val,{kind,id:kind});render();return put(S[kind])}
@@ -572,10 +581,12 @@ $('importfile').addEventListener('change',async e=>{const f=e.target.files[0];if
 $('fb').addEventListener('submit',async e=>{e.preventDefault();const m=$('fbtext').value.trim();if(!m)return;
   if(mode!=='cloud'){$('fbstatus').textContent='Crea una cuenta para enviar comentarios.';return}
   $('fbstatus').textContent='Enviando…';
-  const{error}=await sb.from('fg_feedback').insert({user_id:user.id,email:user.email,message:m.slice(0,2000),page:location.hash||''});
+  let error=null;
+  if(fdb){try{await fdb.collection('fg_feedback').add({uid:user.uid,email:user.email||'',message:m.slice(0,2000),page:location.hash||'',created_at:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){error=e}}
+  else({error}=await sb.from('fg_feedback').insert({user_id:user.id,email:user.email,message:m.slice(0,2000),page:location.hash||''}));
   $('fbstatus').textContent=error?'No se pudo enviar. Intenta de nuevo.':'¡Gracias! Lo recibimos.';if(!error)$('fbtext').value=''});
 $('logout').addEventListener('click',async()=>{
-  if(mode==='cloud'&&sb)await sb.auth.signOut();
+  if(mode==='cloud'){if(fauth)await fauth.signOut();else if(sb)await sb.auth.signOut()}
   mode=null;S=EMPTY();imports=null;showAuth('login');
 });
 
@@ -588,7 +599,7 @@ function showAuth(m){authMode=m||'login';$('app').hidden=true;$('auth').hidden=f
   $('apass').autocomplete=authMode==='login'?'current-password':'new-password';
   $('toSignup').textContent=authMode==='signup'?'Ya tengo cuenta':'Crear cuenta';$('toReset').hidden=authMode!=='login';
   $('demo').hidden=authMode==='newpass';
-  if(!sb){$('autherr').textContent='La app aún no está conectada a Supabase. Puedes probarla sin cuenta.'}
+  if(!sb&&!fauth){$('autherr').textContent='La app aún no está conectada a su base de datos. Puedes probarla sin cuenta.'}
 }
 async function startApp(m){
   mode=m;$('auth').hidden=true;$('app').hidden=false;
@@ -599,25 +610,39 @@ async function startApp(m){
 $('toSignup').addEventListener('click',()=>showAuth(authMode==='signup'?'login':'signup'));
 $('toReset').addEventListener('click',()=>showAuth('reset'));
 $('demo').addEventListener('click',()=>startApp('local'));
-const AUTH_ERR=m=>/invalid login/i.test(m)?'Correo o contraseña incorrectos.':/not confirmed/i.test(m)?'Confirma tu correo primero: revisa tu bandeja de entrada.':/already registered|already been registered/i.test(m)?'Ese correo ya tiene cuenta. Entra o recupera tu contraseña.':/password/i.test(m)?'La contraseña debe tener al menos 8 caracteres.':/rate|too many/i.test(m)?'Demasiados intentos. Espera unos minutos.':'Algo falló. Intenta de nuevo.';
+const AUTH_ERR=m=>/invalid-credential|wrong-password|user-not-found|invalid login/i.test(m)?'Correo o contraseña incorrectos.':/not confirmed/i.test(m)?'Confirma tu correo primero: revisa tu bandeja de entrada.':/email-already-in-use|already registered|already been registered/i.test(m)?'Ese correo ya tiene cuenta. Entra o recupera tu contraseña.':/invalid-email/i.test(m)?'Ese correo no parece válido.':/weak-password|password/i.test(m)?'La contraseña debe tener al menos 8 caracteres.':/rate|too many|too-many/i.test(m)?'Demasiados intentos. Espera unos minutos.':'Algo falló. Intenta de nuevo.';
 $('authf').addEventListener('submit',async e=>{e.preventDefault();
-  if(!sb){$('autherr').textContent='La app aún no está conectada a Supabase. Toca "Probar sin cuenta".';return}
+  if(!sb&&!fauth){$('autherr').textContent='La app aún no está conectada a su base de datos. Toca "Probar sin cuenta".';return}
   const email=$('aemail').value.trim(),password=$('apass').value,redirect=location.origin+location.pathname;
   $('autherr').textContent='';$('authgo').disabled=true;
   try{
+    if(fauth){
+      if(authMode==='login')await fauth.signInWithEmailAndPassword(email,password);
+      else if(authMode==='signup'){if(password.length<8)throw{message:'password'};const c=await fauth.createUserWithEmailAndPassword(email,password);try{await c.user.sendEmailVerification()}catch(e){}}
+      else if(authMode==='reset'){await fauth.sendPasswordResetEmail(email);$('autherr').textContent='Si ese correo tiene cuenta, te llegará un enlace para cambiar la contraseña. Revisa también el spam.'}
+      return}
     if(authMode==='login'){const{error}=await sb.auth.signInWithPassword({email,password});if(error)throw error}
     else if(authMode==='signup'){if(password.length<8)throw{message:'password'};const{data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:redirect}});if(error)throw error;
       if(!data.session){$('autherr').textContent='Te enviamos un correo para confirmar tu cuenta. Ábrelo y vuelve a entrar.';}}
     else if(authMode==='reset'){const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:redirect});if(error)throw error;$('autherr').textContent='Si ese correo tiene cuenta, te llegará un enlace para cambiar la contraseña.'}
     else if(authMode==='newpass'){if(password.length<8)throw{message:'password'};const{error}=await sb.auth.updateUser({password});if(error)throw error;toast('Contraseña actualizada');}
-  }catch(err){$('autherr').textContent=AUTH_ERR(String(err&&err.message||''))}
+  }catch(err){$('autherr').textContent=AUTH_ERR(String(err&&(err.code||'')+' '+(err.message||'')))}
   finally{$('authgo').disabled=false}
 });
 
 // ============ inicio ============
 fillCats();$('date').value=today();
-const configured=CFG.supabaseUrl&&!/TU-PROYECTO/.test(CFG.supabaseUrl)&&CFG.supabaseAnonKey&&!/TU-ANON/.test(CFG.supabaseAnonKey);
-if(configured&&window.supabase){
+const FB=CFG.firebase||{};
+const fbReady=CFG.backend==='firebase'&&FB.apiKey&&!/TU-/.test(FB.apiKey)&&FB.projectId&&window.firebase;
+const sbReady=CFG.backend==='supabase'&&CFG.supabaseUrl&&!/TU-PROYECTO/.test(CFG.supabaseUrl)&&CFG.supabaseAnonKey&&!/TU-ANON/.test(CFG.supabaseAnonKey)&&window.supabase;
+if(fbReady){
+  const app=firebase.apps.length?firebase.app():firebase.initializeApp(FB);
+  fauth=app.auth();fdb=app.firestore();
+  fauth.onAuthStateChanged(u=>{
+    if(u){const fresh=!user||user.uid!==u.uid;user=u;if(fresh||mode!=='cloud')startApp('cloud')}
+    else{user=null;if(mode!=='local')showAuth('login')}
+  });
+}else if(sbReady){
   sb=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey);
   sb.auth.onAuthStateChange((ev,session)=>{
     if(ev==='PASSWORD_RECOVERY'){showAuth('newpass');return}
@@ -625,5 +650,5 @@ if(configured&&window.supabase){
     else if(ev==='SIGNED_OUT'||ev==='INITIAL_SESSION'){user=null;if(mode!=='local')showAuth('login')}
   });
 }else showAuth('login');
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&mode==='cloud'&&!editing&&!pending&&!imports)loadCloud().then(render).catch(()=>{})});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&mode==='cloud'&&!editing&&!pending&&!imports&&Date.now()-lastLoad>5*60e3)loadCloud().then(render).catch(()=>{})});
 }
