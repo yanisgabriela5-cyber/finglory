@@ -201,6 +201,14 @@ section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var
 .brow input{min-height:38px;text-align:right}
 .brow.tot{border:0;font-size:16px}.brow.tot b{text-align:right;color:var(--grow);font-size:18px}
 #xgrossw select{margin-top:8px}
+.stab{width:100%;border-collapse:collapse;font-size:15px}
+.stab td,.stab th{padding:8px 4px;border-bottom:1px solid var(--line)}
+.stab th{font-size:13px;color:var(--soft);font-weight:600;text-align:right}.stab th:first-child{text-align:left}
+.stab td.m{white-space:nowrap}.stab td.m input{width:6.5em;min-height:34px;text-align:right;padding:0 8px}
+.stab tr.neg td.m{color:var(--red)}.stab tr.sum td{font-weight:800;border-bottom:0;font-size:17px}.stab tr.sum td.m{color:var(--grow)}
+.stab tr.bold td{font-weight:700}
+.payrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.payrow span{flex:1 1 160px}
 .err{color:var(--red);font-size:14px;margin:8px 0 0}
 .status{font-size:13px;color:var(--soft);margin-top:8px}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--plum);color:var(--snow);border-radius:20px;padding:8px 8px 8px 16px;display:none;align-items:center;gap:10px;z-index:8;max-width:calc(100vw - 32px)}
@@ -275,7 +283,7 @@ pre,.scroll{overflow-x:auto}
           <div class="brow"><span>Seguro Social (9.75%)</span><input id="bcss" inputmode="decimal" aria-label="Seguro Social"></div>
           <div class="brow"><span>Seguro Educativo (1.25%)</span><input id="bse" inputmode="decimal" aria-label="Seguro Educativo"></div>
           <div class="brow"><span>Impuesto sobre la renta (estimado)</span><input id="bisr" inputmode="decimal" aria-label="Impuesto sobre la renta"></div>
-          <div class="brow"><span>Otros descuentos (préstamos, cuotas)</span><input id="botr" inputmode="decimal" placeholder="0.00" aria-label="Otros descuentos"></div>
+          <div class="brow"><span>Descuentos directos (préstamos, cooperativa…)</span><input id="botr" inputmode="decimal" placeholder="0.00" aria-label="Descuentos directos"></div>
           <div class="brow tot"><span>Neto que recibes</span><b id="bnet">$0.00</b></div>
           <p class="sub" style="font-size:13px">Estimado con las tasas de ley. Si tu talonario dice otra cosa, corrige los montos. Se guarda como ingreso el neto.</p>
         </div>
@@ -314,6 +322,27 @@ pre,.scroll{overflow-x:auto}
   <div class="head2"><h2 style="margin:0">Movimientos del mes</h2><button class="link" id="csv">Copiar como CSV</button></div>
   <div class="tools"><input id="q" type="search" placeholder="Buscar descripción…" aria-label="Buscar"><select id="fc" aria-label="Filtrar categoría"></select></div>
   <div id="list"></div>
+</div></section>
+
+<section class="band" id="salario" data-v="plan"><div class="wrap">
+  <h2>Mi salario</h2>
+  <p class="sub">Opcional, para asalariados en Panamá. Pon tu salario bruto y tus descuentos: los de ley (Seguro Social, Seguro Educativo e impuesto sobre la renta) y los directos (préstamos, cooperativa, pensión, etc.). Te muestro el neto y registras cada pago con un toque.</p>
+  <div class="grid" style="margin-top:16px">
+    <div class="card">
+      <label for="sbruto" style="margin-top:0">Salario bruto mensual</label>
+      <input id="sbruto" class="amt" inputmode="decimal" placeholder="0.00" autocomplete="off">
+      <label for="spago">Te pagan</label>
+      <select id="spago"><option value="q">Por quincena (días 15 y 30)</option><option value="m">Una vez al mes (día 30)</option></select>
+      <label class="chk"><input type="checkbox" id="smanual"> Ajustar los descuentos de ley a mano, según mi talonario</label>
+      <h3 style="margin-top:20px">Descuentos directos</h3>
+      <p class="sub" style="margin-top:2px">Lo que tu empresa te descuenta directo de la planilla. Escribe el monto de todo el mes.</p>
+      <div id="sdirlist"></div>
+      <div class="ctrls"><input id="sdname" placeholder="Ej. Préstamo personal" aria-label="Nombre del descuento directo"><input id="sdamt" inputmode="decimal" placeholder="Monto al mes" aria-label="Monto al mes"><button id="sdadd" type="button">Añadir</button></div>
+      <div class="acts"><button class="pri" id="salsave" type="button">Guardar mi salario</button></div>
+      <p class="status" id="salstatus"></p>
+    </div>
+    <div class="card" id="sres"></div>
+  </div>
 </div></section>
 
 <section class="band" id="fijos" data-v="plan"><div class="wrap">
@@ -445,7 +474,7 @@ pre,.scroll{overflow-x:auto}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="config.js?v=14"></script>
-<script src="app.js?v=14"></script>
+<script src="config.js?v=16"></script>
+<script src="app.js?v=16"></script>
 </body>
 </html>

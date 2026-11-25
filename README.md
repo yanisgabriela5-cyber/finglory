@@ -12,7 +12,7 @@ FinGlory es una web app para saber en qué se va tu dinero: registra gastos e in
 - **Por mes o por quincena:** un solo selector manda en toda la app (Inicio, Movimientos, Plan, Metas y Hábitos). En quincena el presupuesto es la mitad del mensual, las alertas cuentan la quincena, Plan muestra los fijos de esa quincena y Metas te dice cuánto apartar por quincena.
 - **Movimientos:** búsqueda, filtro y edición (toca un movimiento para cambiar monto, tipo, categoría, descripción o fecha).
 - **Analizar:** lee el Excel o CSV del banco, pregunta lo que no entiende, recuerda tus respuestas y sugiere presupuesto.
-- **Plan:** gastos e ingresos fijos (como la quincena) y reparto del salario por porcentajes.
+- **Plan:** Mi salario (opcional): salario bruto mensual, descuentos de ley calculados o ajustados a mano, descuentos directos (préstamos, cooperativa, etc.), neto al mes y por quincena, y registro de cada pago con un toque. Además gastos e ingresos fijos y reparto del salario por porcentajes.
 - **Metas:** metas con propósito y lista de deseos con plazo libre (días, semanas o meses), cuánto apartar según tu ritmo y botón para apartar dinero para cada deseo.
 - **Hábitos:** tips que salen de analizar tus movimientos (manuales e importados): balance, proyección del periodo, categorías que suben frente al periodo anterior, lugares que repites, fines de semana, suscripciones, comisiones y metas atrasadas. Además gastos hormiga e historial de 6 meses.
 - **Mi cuenta:** modo claro, oscuro o automático, recordatorio mensual para el calendario, respaldo y comentarios.
