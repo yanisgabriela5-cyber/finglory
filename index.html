@@ -209,6 +209,10 @@ section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var
 .stab tr.bold td{font-weight:700}
 .payrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 0;border-bottom:1px solid var(--line)}
 .payrow span{flex:1 1 160px}
+.debtsum{display:flex;flex-wrap:wrap;gap:12px 40px;margin:14px 0 4px}
+.debtsum .stat{font-size:clamp(26px,3.5vw,34px)}
+.p.debt i{background:var(--pink)}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--track);color:var(--ink);margin-left:6px;vertical-align:2px}
 .err{color:var(--red);font-size:14px;margin:8px 0 0}
 .status{font-size:13px;color:var(--soft);margin-top:8px}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--plum);color:var(--snow);border-radius:20px;padding:8px 8px 8px 16px;display:none;align-items:center;gap:10px;z-index:8;max-width:calc(100vw - 32px)}
@@ -345,6 +349,23 @@ pre,.scroll{overflow-x:auto}
   </div>
 </div></section>
 
+<section class="band" id="deudas" data-v="plan"><div class="wrap">
+  <h2>Préstamos y deudas</h2>
+  <p class="sub">Anota cuánto debes en total y tu cuota. Cada vez que registras un pago, el saldo baja solo. Si tiene interés, solo baja la parte que va a capital.</p>
+  <div id="debtsum"></div>
+  <div class="cards" id="debts"></div>
+  <form class="addf" id="df">
+    <div style="grid-column:span 2"><label for="dname">Préstamo o deuda</label><input id="dname" placeholder="Ej. Préstamo personal, tarjeta de crédito" required></div>
+    <div><label for="dtotal">Saldo que debes hoy</label><input id="dtotal" inputmode="decimal" placeholder="0.00" required></div>
+    <div><label for="dcuota">Cuota</label><input id="dcuota" inputmode="decimal" placeholder="0.00" required></div>
+    <div><label for="dfreq">Pagas</label><select id="dfreq"><option value="m">Al mes</option><option value="q">Por quincena</option></select></div>
+    <div><label for="dday">Día de pago</label><input id="dday" type="number" min="1" max="31" value="15"></div>
+    <div><label for="drate">Interés anual % (opcional)</label><input id="drate" inputmode="decimal" placeholder="Ej. 12"></div>
+    <div class="pz"><label class="chk" style="margin-top:28px"><input type="checkbox" id="ddirect"> Se descuenta directo de mi salario</label></div>
+    <button class="pri" type="submit">Añadir deuda</button>
+  </form>
+</div></section>
+
 <section class="band" id="fijos" data-v="plan"><div class="wrap">
   <h2>Gastos e ingresos fijos</h2>
   <p class="sub">Lo que pagas o cobras todos los meses, como el alquiler o tu quincena. Regístralos con un toque cuando pasen; mientras estén pendientes, se toman en cuenta para tu dinero "libre de verdad".</p>
@@ -474,7 +495,7 @@ pre,.scroll{overflow-x:auto}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="config.js?v=16"></script>
-<script src="app.js?v=16"></script>
+<script src="config.js?v=18"></script>
+<script src="app.js?v=18"></script>
 </body>
 </html>
