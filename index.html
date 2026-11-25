@@ -175,6 +175,13 @@ section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var
 .pbar .seg button{font-size:14px;padding:0 8px}.pbar .sh{display:none}@media(max-width:600px){.pbar .lg{display:none}.pbar .sh{display:inline}.pbar{padding-top:10px}}
 .seg button[aria-pressed=true]{background:var(--sel);color:var(--onsel);border-color:var(--sel);font-weight:700}
 .theme{background:var(--card)}
+.verse{margin:0 0 20px;background:var(--plum);color:#FCFBFB;border-radius:20px;padding:18px 20px 14px;position:relative}
+.verse blockquote{margin:0;font-size:1.05rem;line-height:1.5;font-style:italic;padding-right:28px}
+.verse blockquote::before{content:"“";color:var(--lime);font-size:2rem;line-height:0;vertical-align:-.45em;margin-right:4px;font-style:normal}
+.verse figcaption{margin-top:8px;font-size:.88rem;color:#DBB0CF}.verse figcaption b{color:#C6ED58}
+.verse .vacts{display:flex;gap:8px;margin-top:10px}
+.verse .vacts .ghost{background:transparent;color:#FCFBFB;border:1px solid rgba(252,251,251,.4);padding:6px 12px;font-size:.85rem}
+.verse .vacts .icon{position:absolute;top:10px;right:10px;background:transparent;color:#FCFBFB;border:0}
 .remind{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--lime);color:#3E2F59;border-radius:20px;padding:14px 18px;margin-bottom:20px}
 .remind p{margin:0;flex:1 1 240px;font-weight:600}
 .remind button{background:#3E2F59;color:var(--snow);border-color:#3E2F59}
@@ -255,6 +262,7 @@ pre,.scroll{overflow-x:auto}
 <div class="pbar" id="pbar"><div class="seg per" role="group" aria-label="Periodo"><button type="button" data-per="mes"><span class="lg">Mes completo</span><span class="sh">Mes</span></button><button type="button" data-per="q1">1ª quincena</button><button type="button" data-per="q2">2ª quincena</button></div><p class="sub pnote" id="pnote" hidden>Aquí solo cambia si te muestro cuánto apartar por mes o por quincena.</p></div>
 <section class="band" id="resumen" data-v="inicio"><div class="wrap">
   <div class="remind" id="remind" hidden></div>
+  <figure class="verse" id="verse" hidden><blockquote id="vtext"></blockquote><figcaption><b id="vref"></b> <span>· Reina-Valera 1909</span></figcaption><div class="vacts"><button type="button" class="ghost" id="vnext">Otro versículo</button><button type="button" class="icon" id="vhide" aria-label="Ocultar el versículo por hoy">✕</button></div></figure>
   <div class="grid">
     <div>
       <div class="slab">
@@ -454,6 +462,7 @@ pre,.scroll{overflow-x:auto}
       <label class="chk" style="margin-top:16px"><input type="checkbox" id="payroll"> Soy asalariada/o en Panamá: mostrar los descuentos de ley (Seguro Social, Seguro Educativo e impuesto sobre la renta) al registrar mi salario</label>
       <div class="acts"><button id="savebank">Guardar</button><button id="exportb">Descargar respaldo</button><label class="btnlike" for="importfile" style="margin:0">Restaurar respaldo<input type="file" id="importfile" accept=".json" hidden></label><button id="logout">Cerrar sesión</button></div>
       <p class="status" id="acstatus"></p>
+      <label class="chk" style="margin-top:16px"><input type="checkbox" id="verseon"> Mostrar un versículo de la Biblia sobre finanzas al abrir la app</label>
       <label style="margin-top:22px">Apariencia</label>
       <div class="seg theme" role="group" aria-label="Apariencia" style="max-width:420px;grid-template-columns:1fr 1fr 1fr"><button type="button" data-theme-set="auto">Automático</button><button type="button" data-theme-set="light">Claro</button><button type="button" data-theme-set="dark">Oscuro</button></div>
       <label style="margin-top:18px">Recordatorio mensual</label>
@@ -495,7 +504,7 @@ pre,.scroll{overflow-x:auto}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="config.js?v=18"></script>
-<script src="app.js?v=18"></script>
+<script src="config.js?v=19"></script>
+<script src="app.js?v=19"></script>
 </body>
 </html>

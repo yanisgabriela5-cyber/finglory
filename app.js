@@ -190,7 +190,7 @@ function roomElsewhere(cat,ym,need){const T=totals(ym);let best=null;
 // ============ pintar la app ============
 function render(){
   $('mlabel').textContent=innerWidth<=420?cap(MESES[Number(month.slice(5))-1].slice(0,3))+' '+month.slice(0,4):cap(ymLabel(month));
-  renderTop();renderList();renderSalary();renderDebts();renderFixed();renderSplit();renderGoals();renderWishes();renderAnts();renderTips();renderHist();renderAnalysis();renderAccount();
+  renderTop();renderList();renderSalary();renderDebts();renderFixed();renderSplit();renderGoals();renderWishes();renderAnts();renderTips();renderHist();renderAnalysis();renderAccount();renderVerse();
 }
 function renderTop(){
   const T=totalsP(),sc=pScale();
@@ -421,7 +421,7 @@ function renderAccount(){
   $('whoami').textContent=mode==='cloud'?`Entraste como ${user&&user.email||''}. Tus datos se guardan en tu cuenta y solo tú los ves.`:'Estás probando sin cuenta: los datos se guardan solo en este dispositivo. Crea una cuenta para no perderlos y usarlos en tu celular y computadora.';
   if(document.activeElement!==$('bankname'))$('bankname').value=(S.settings&&S.settings.bankName)||'';
   $('logout').textContent=mode==='cloud'?'Cerrar sesión':'Salir del modo prueba';
-  $('payroll').checked=payOn();syncX();syncBrk(false);
+  $('payroll').checked=payOn();$('verseon').checked=verseOn();syncX();syncBrk(false);
 }
 
 // ============ registrar con alerta de presupuesto ============
@@ -831,11 +831,49 @@ function showAuth(m){authMode=m||'login';$('app').hidden=true;$('auth').hidden=f
   $('demo').hidden=authMode==='newpass';
   if(!sb&&!fauth){$('autherr').textContent='La app aún no está conectada a su base de datos. Puedes probarla sin cuenta.'}
 }
+
+// ============ versículo al abrir ============
+const VERSES=[
+['Proverbios 3:9-10','Honra á Jehová de tu sustancia, Y de las primicias de todos tus frutos; Y serán llenas tus trojes con abundancia, y tus lagares rebosarán de mosto.'],
+['Proverbios 21:5','Los pensamientos del solícito ciertamente van á abundancia; mas todo presuroso, indefectiblemente á pobreza.'],
+['Proverbios 21:20','Tesoro codiciable y pingüe hay en la casa del sabio; mas el hombre insensato lo disipará.'],
+['Proverbios 21:26','Hay quien todo el día codicia: mas el justo da, y no desperdicia.'],
+['Proverbios 22:7','El rico se enseñoreará de los pobres; y el que toma prestado, siervo es del que empresta.'],
+['Proverbios 22:1','De más estima es la buena fama que las muchas riquezas; y la buena gracia más que la plata y el oro.'],
+['Proverbios 22:3','El avisado ve el mal, y escóndese: mas los simples pasan, y reciben el daño.'],
+['Proverbios 13:11','Disminuiránse las riquezas de vanidad: empero multiplicará el que allega con su mano.'],
+['Proverbios 6:6-8','Ve á la hormiga, oh perezoso, mira sus caminos, y sé sabio; la cual no teniendo capitán, ni gobernador, ni señor, prepara en el verano su comida y allega en el tiempo de la siega su mantenimiento.'],
+['Proverbios 16:3','Encomienda á Jehová tus obras, y tus pensamientos serán afirmados.'],
+['Proverbios 16:8','Mejor es lo poco con justicia, que la muchedumbre de frutos sin derecho.'],
+['Eclesiastés 5:10','El que ama el dinero, no se hartará de dinero; y el que ama el mucho tener, no sacará fruto. También esto es vanidad.'],
+['Eclesiastés 5:5','Mejor es que no prometas, que no que prometas y no pagues.'],
+['Eclesiastés 5:12','Dulce es el sueño del trabajador, ora coma mucho ó poco; mas al rico no le deja dormir la hartura.'],
+['Malaquías 3:10','Traed todos los diezmos al alfolí, y haya alimento en mi casa; y probadme ahora en esto, dice Jehová de los ejércitos, si no os abriré las ventanas de los cielos, y vaciaré sobre vosotros bendición hasta que sobreabunde.'],
+['Mateo 6:21','Porque donde estuviere vuestro tesoro, allí estará vuestro corazón.'],
+['Mateo 6:33','Mas buscad primeramente el reino de Dios y su justicia, y todas estas cosas os serán añadidas.'],
+['Lucas 14:28','Porque ¿cuál de vosotros, queriendo edificar una torre, no cuenta primero sentado los gastos, si tiene lo que necesita para acabarla?'],
+['Filipenses 4:11','No lo digo en razón de indigencia, pues he aprendido á contentarme con lo que tengo.'],
+['Filipenses 4:19','Mi Dios, pues, suplirá todo lo que os falta conforme á sus riquezas en gloria en Cristo Jesús.'],
+['Hebreos 13:5','Sean las costumbres vuestras sin avaricia; contentos de lo presente; porque él dijo: No te desampararé, ni te dejaré.']
+];
+const verseOn=()=>!(S.settings&&S.settings.verse===false);
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+function pickVerse(){const last=Number(lsGet('fg.verse.last'));let i;do{i=Math.floor(Math.random()*VERSES.length)}while(VERSES.length>1&&i===last);lsSet('fg.verse.last',String(i));return i}
+let verseIdx=null;
+function renderVerse(){
+  const el=$('verse');
+  if(!verseOn()||lsGet('fg.verse.hidden')===today()){el.hidden=true;return}
+  if(verseIdx===null)verseIdx=pickVerse();
+  const [ref,txt]=VERSES[verseIdx];$('vtext').textContent=txt;$('vref').textContent=ref;el.hidden=false;
+}
+$('vnext').addEventListener('click',()=>{verseIdx=pickVerse();renderVerse()});
+$('vhide').addEventListener('click',()=>{lsSet('fg.verse.hidden',today());renderVerse();toast('Listo, mañana verás otro versículo.')});
+$('verseon').addEventListener('change',()=>{const on=$('verseon').checked;if(on)lsSet('fg.verse.hidden','');setSingle('settings',Object.assign({},S.settings||{},{verse:on}));toast(on?'Verás un versículo cada vez que abras la app.':'Versículo desactivado.')});
 async function startApp(m){
   mode=m;$('auth').hidden=true;$('app').hidden=false;
   if(m==='cloud'){setStatus('Cargando tus datos…');try{await loadCloud();setStatus('')}catch(e){setStatus('No se pudieron cargar tus datos. Revisa tu conexión y recarga.')}}
   else loadLocal();
-  splitDraft=null;salDraft=null;$('date').value=today();fillCats();
+  splitDraft=null;salDraft=null;verseIdx=null;$('date').value=today();fillCats();
   if(period!=='mes'&&month===today().slice(0,7))period=Number(today().slice(8))<=15?'q1':'q2';
   document.querySelectorAll('[data-per]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.per===period));
   render();show(location.hash.slice(1)||'inicio');
