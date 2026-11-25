@@ -147,18 +147,18 @@ function renderList(){
   const q=$('q').value.trim().toLowerCase(),fc=$('fc').value;
   const rows=ofMonth(month).filter(t=>(!fc||t.cat===fc)&&(!q||String(t.desc||'').toLowerCase().includes(q)||String(t.cat).toLowerCase().includes(q)))
     .sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.id).localeCompare(String(a.id)));
-  $('list').innerHTML=rows.length?`<table class="stack"><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="m">Monto</th><th></th></tr></thead><tbody>${rows.map(t=>{
+  $('list').innerHTML=rows.length?`<table class="mlist"><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="m">Monto</th><th></th></tr></thead><tbody>${rows.map(t=>{
     const d=String(t.date).slice(8,10)+'/'+String(t.date).slice(5,7);
-    return `<tr><td>${esc(d)}</td><td>${esc(t.desc||'—')}</td><td>${esc(t.cat)}</td><td class="m${t.type==='ingreso'?' in':''}">${t.type==='ingreso'?'+':'-'}${money(t.amount)}</td><td><button class="x" data-del="${esc(t.id)}">Eliminar</button></td></tr>`}).join('')}</tbody></table>`
+    return `<tr><td class="c-d">${esc(d)}</td><td class="c-t"><span class="t1">${esc(t.desc||'—')}</span><span class="t2">${esc(d)} · ${esc(t.cat)}</span></td><td class="c-c">${esc(t.cat)}</td><td class="m${t.type==='ingreso'?' in':''}">${t.type==='ingreso'?'+':'-'}${money(t.amount)}</td><td class="c-x"><button class="x" data-del="${esc(t.id)}" aria-label="Eliminar ${esc(t.desc||'movimiento')}"><span class="lg">Eliminar</span><span class="sh" aria-hidden="true">✕</span></button></td></tr>`}).join('')}</tbody></table>`
     :`<p class="empty">${q||fc?'Nada coincide con la búsqueda.':'No hay movimientos en '+esc(ymLabel(month))+'.'}</p>`;
 }
 function renderFixed(){
   if(!S.fixed.length){$('fixedlist').innerHTML='<p class="empty">Aún no tienes gastos fijos. Ejemplos: alquiler, plan del celular, internet, universidad, suscripciones.</p>';return}
   const list=S.fixed.slice().sort((a,b)=>(a.day||0)-(b.day||0));
   const pend=fixedPending(month);
-  $('fixedlist').innerHTML=`<table class="stack"><thead><tr><th>Día</th><th>Gasto</th><th>Categoría</th><th class="m">Monto</th><th>Estado en ${esc(MESES[Number(month.slice(5))-1])}</th><th></th></tr></thead><tbody>${list.map(f=>{
+  $('fixedlist').innerHTML=`<table class="mlist fx"><thead><tr><th>Día</th><th>Gasto</th><th>Categoría</th><th class="m">Monto</th><th>Estado en ${esc(MESES[Number(month.slice(5))-1])}</th><th></th></tr></thead><tbody>${list.map(f=>{
     const done=!pend.includes(f);
-    return `<tr><td>${esc(f.day)}</td><td>${esc(f.name)}</td><td>${esc(f.cat)}</td><td class="m">${money(f.amount)}</td><td>${done?'<span class="ok">Registrado</span>':`<button class="x pri" data-fx="${esc(f.id)}">Registrar pago</button>`}</td><td><button class="x" data-dfx="${esc(f.id)}">Quitar</button></td></tr>`}).join('')}</tbody></table>
+    return `<tr><td class="c-d">${esc(f.day)}</td><td class="c-t"><span class="t1">${esc(f.name)}</span><span class="t2">Día ${esc(f.day)} · ${esc(f.cat)}</span></td><td class="c-c">${esc(f.cat)}</td><td class="m">${money(f.amount)}</td><td class="c-s">${done?'<span class="ok">Registrado</span>':`<button class="x pri" data-fx="${esc(f.id)}">Registrar pago</button>`}</td><td class="c-x"><button class="x" data-dfx="${esc(f.id)}" aria-label="Quitar ${esc(f.name)}"><span class="lg">Quitar</span><span class="sh" aria-hidden="true">✕</span></button></td></tr>`}).join('')}</tbody></table>
   <div class="line"><span class="sub" style="flex:1 1 200px">Total fijo al mes: <b>${money(sumAmt(S.fixed))}</b>${pend.length?` · Pendiente: <b>${money(sumAmt(pend))}</b>`:''}</span>${pend.length>1?'<button id="fxall">Registrar todos los pendientes</button>':''}</div>`;
 }
 function renderSplit(){
@@ -386,7 +386,7 @@ async function fileMoves(f){
   return rowsToMoves(parseCSV(await f.text()));
 }
 let chosen=null;
-function pick(f){chosen=f||null;$('fname').textContent=f?'Archivo: '+f.name:''}
+function pick(f){chosen=f||null;$('fname').textContent=f?'Archivo: '+f.name:'Ningún archivo elegido'}
 $('file').addEventListener('change',e=>pick(e.target.files[0]));
 const dz=$('drop');
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('on')});

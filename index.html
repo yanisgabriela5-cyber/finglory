@@ -95,7 +95,12 @@ td.m.in{color:var(--grow)}
 .addf label{margin:0 0 4px}
 .split{display:grid;grid-template-columns:minmax(0,1fr) 6em 8em auto;gap:8px 12px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
 .split input{min-height:40px}.split .pct{text-align:right}
-@media(max-width:520px){.split{grid-template-columns:minmax(0,1fr) 5em}.split .m{grid-column:1}.row{grid-template-columns:7em minmax(0,1fr)}.row .v{grid-column:1/-1;text-align:left}}
+@media(max-width:520px){
+  .split{grid-template-columns:minmax(0,1fr) 4.6em 44px;grid-template-areas:"n p x" "a a a";row-gap:2px}
+  .split>span:first-child{grid-area:n}.split .pct{grid-area:p}.split>.m{grid-area:a;text-align:left;color:var(--soft);font-size:14px}.split>.x{grid-area:x}
+  .row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n v" "t t";row-gap:6px}
+  .row .n{grid-area:n}.row .v{grid-area:v}.row .track{grid-area:t}.row input{grid-area:v}
+}
 .stat{font-size:clamp(28px,4vw,40px);font-weight:800;line-height:1.1;white-space:nowrap}
 .hist{display:grid;gap:10px;margin-top:16px}
 .hrow{display:grid;grid-template-columns:4.5em minmax(0,1fr) 8.5em;gap:12px;align-items:center}
@@ -122,7 +127,7 @@ td.m.in{color:var(--grow)}
 .tabs a{display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;white-space:nowrap}
 .tabs a svg{width:19px;height:19px;flex:none}.tabs .sh{display:none}
 .appbar+section.band,#app>section.band:not([hidden]){padding-top:clamp(28px,4vw,48px)}
-.tabs a:hover{background:var(--card)}
+@media(hover:hover){.tabs a:hover{background:var(--card)}}
 .tabs a[aria-current=page]{background:var(--plum);color:var(--snow)}
 .appbar .mnav{flex:none}.appbar .mnav b{min-width:8.5em;font-size:15px}.appbar .icon{width:38px;min-height:38px}
 .me{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--card);color:var(--ink)}
@@ -131,21 +136,39 @@ td.m.in{color:var(--grow)}
 section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var(--line)}
 @media(max-width:1100px){.tabs a{padding:9px 11px}.tabs a span{font-size:14px}}
 @media(max-width:980px){
-  .appbar{flex-wrap:wrap;padding:10px 16px}
+  .appbar{flex-wrap:nowrap;padding:10px 14px;gap:10px}
   .appbar .brand{font-size:21px}.appbar .logo{width:34px;height:34px}
   .appbar .mnav{margin-left:auto;order:2}.me{order:3}
   .tabs{position:fixed;left:0;right:0;bottom:0;z-index:7;justify-content:space-around;gap:0;background:var(--bg);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
   .tabs a{flex-direction:column;gap:3px;padding:6px 2px;flex:1 1 0;font-size:12px;border-radius:16px;min-width:0}
   .tabs a span{font-size:12px}
   .tabs .lg{display:none}.tabs .sh{display:inline}
-  .tabs a svg{width:22px;height:22px}
+  .tabs a svg{width:44px;height:28px;padding:3px 10px;border-radius:12px;box-sizing:border-box}
   .tabs a[aria-current=page]{background:none;color:var(--plum)}
-  .tabs a[aria-current=page] svg{background:var(--lime);border-radius:12px;padding:3px 10px;width:44px;height:28px;color:#3E2F59}
+  .tabs a[aria-current=page] svg{background:var(--lime);color:#3E2F59}
   :root[data-theme=dark] .tabs a[aria-current=page],.tabs a[aria-current=page]{color:var(--ink)}
   #app{padding-bottom:84px}
   .toast{bottom:92px}
 }
-@media(max-width:420px){.appbar .appname{display:none}.appbar .mnav b{min-width:6.5em;font-size:14px}}
+@media(max-width:420px){.appbar .appname{display:none}.appbar .mnav{gap:4px}.appbar .mnav b{min-width:5.6em;font-size:14px}.appbar .icon{width:34px;min-height:34px}.me{width:38px;height:38px}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.pri-like{background:var(--lime)!important;color:#3E2F59!important;border-color:var(--lime)!important;font-weight:700!important}
+#file:focus-visible+*,.drop:focus-within .btnlike{outline:3px solid var(--focus);outline-offset:2px}
+.mlist .t2,.mlist .sh{display:none}.mlist .t1{display:block}
+@media(max-width:600px){
+  .mlist thead{display:none}
+  .mlist tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;column-gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .mlist td{border:0;padding:0}
+  .mlist .c-d,.mlist .c-c{display:none}
+  .mlist .t1{font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mlist .t2{display:block;font-size:13px;color:var(--soft)}
+  .mlist .m{font-size:15px}
+  .mlist .x{min-height:36px;width:36px;padding:0}
+  .mlist .c-s .x{width:auto;padding:0 18px;min-height:40px}
+  .mlist .lg{display:none}.mlist .sh{display:inline}
+  .mlist.fx tr{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"t m x" "s s s";row-gap:8px}
+  .mlist.fx .c-t{grid-area:t}.mlist.fx .m{grid-area:m}.mlist.fx .c-x{grid-area:x}.mlist.fx .c-s{grid-area:s}
+}
 .err{color:var(--red);font-size:14px;margin:8px 0 0}
 .status{font-size:13px;color:var(--soft);margin-top:8px}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--plum);color:var(--snow);border-radius:20px;padding:8px 8px 8px 16px;display:none;align-items:center;gap:10px;z-index:8;max-width:calc(100vw - 32px)}
@@ -228,8 +251,8 @@ pre,.scroll{overflow-x:auto}
     <div>
       <div class="drop" id="drop">
         <p style="margin:0 0 10px"><b>Arrastra el archivo aquí</b> o elígelo</p>
-        <input type="file" id="file" accept=".csv,.txt,.tsv,.xlsx,.xls" aria-label="Archivo del banco" style="max-width:340px;margin:0 auto;padding-top:8px">
-        <p class="sub" id="fname" style="margin:8px auto 0"></p>
+        <label class="btnlike pri-like" for="file" style="max-width:260px;margin:0 auto">Elegir archivo</label><input type="file" id="file" accept=".csv,.txt,.tsv,.xlsx,.xls" class="sr" aria-label="Archivo del banco">
+        <p class="sub" id="fname" style="margin:8px auto 0">Ningún archivo elegido</p>
       </div>
       <label for="paste">O pega aquí la tabla de movimientos</label>
       <textarea id="paste" placeholder="Copia la tabla de movimientos de tu banca en línea y pégala aquí"></textarea>
@@ -357,7 +380,7 @@ pre,.scroll{overflow-x:auto}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="config.js?v=7"></script>
-<script src="app.js?v=7"></script>
+<script src="config.js?v=9"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
