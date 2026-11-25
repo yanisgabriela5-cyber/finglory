@@ -18,7 +18,7 @@ FinGlory es una web app para saber en qué se va tu dinero: registra gastos e in
 
 ## Paso 1. Preparar Supabase (unos 10 minutos)
 
-1. Entra a [supabase.com](https://supabase.com) y crea un proyecto nuevo (por ejemplo `finanzas`). Te recomiendo uno nuevo, separado de tus otros proyectos.
+1. Entra a [supabase.com](https://supabase.com) y crea un proyecto nuevo (por ejemplo `finglory`). El plan gratis permite 2 proyectos activos; si ya tienes 2, pausa uno que no uses. Las tablas llevan el prefijo `fg_`, así que también pueden vivir en un proyecto existente, pero solo si ese proyecto no tiene datos de clientes ni tablas abiertas a cualquier usuario con sesión.
 2. Ve a **SQL Editor → New query**, pega todo el contenido de `schema.sql` y toca **Run**.
 3. Ve a **Project Settings → API** y copia:
    - **Project URL** (algo como `https://abcd1234.supabase.co`)
@@ -50,7 +50,7 @@ Comparte el link. Cada persona toca **Crear cuenta**, confirma su correo y listo
 - **iPhone (Safari)**: Compartir → *Agregar a pantalla de inicio*.
 - **Android (Chrome)**: menú ⋮ → *Agregar a la pantalla principal* o *Instalar app*.
 
-Lo que escriban en **Mi cuenta → Enviar comentarios** te llega a Supabase en **Table Editor → feedback**.
+Lo que escriban en **Mi cuenta → Enviar comentarios** te llega a Supabase en **Table Editor → fg_feedback**.
 
 **Sé transparente con tus testers:** como dueña del proyecto de Supabase, tú puedes ver los datos que guardan desde el panel. Díselo antes de que suban sus movimientos.
 

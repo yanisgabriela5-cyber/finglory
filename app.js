@@ -49,23 +49,23 @@ const saveLocal=()=>{try{localStorage.setItem(LKEY,JSON.stringify(allDocs()))}ca
 const loadLocal=()=>{try{const d=JSON.parse(localStorage.getItem(LKEY)||'[]');S=fromDocs(Array.isArray(d)?d:[])}catch(e){S=EMPTY()}};
 async function loadCloud(){
   const rows=[];
-  for(let from=0;;from+=1000){const{data,error}=await sb.from('docs').select('data').range(from,from+999);if(error)throw error;rows.push(...data.map(r=>r.data));if(data.length<1000)break}
+  for(let from=0;;from+=1000){const{data,error}=await sb.from('fg_docs').select('data').range(from,from+999);if(error)throw error;rows.push(...data.map(r=>r.data));if(data.length<1000)break}
   S=fromDocs(rows);
 }
 const cloudErr=e=>toast(/quota|limit/i.test(String(e&&e.message))?'Se llenó el espacio de la base de datos.':'No se pudo guardar. Revisa tu conexión.');
 async function put(doc){
   if(mode!=='cloud'){saveLocal();return}
-  const{error}=await sb.from('docs').upsert({user_id:user.id,id:doc.id,kind:doc.kind,data:doc,updated_at:new Date().toISOString()},{onConflict:'user_id,id'});
+  const{error}=await sb.from('fg_docs').upsert({user_id:user.id,id:doc.id,kind:doc.kind,data:doc,updated_at:new Date().toISOString()},{onConflict:'user_id,id'});
   if(error)cloudErr(error);
 }
 async function putMany(docs){
   if(mode!=='cloud'){saveLocal();return true}
   for(let i=0;i<docs.length;i+=400){
-    const{error}=await sb.from('docs').upsert(docs.slice(i,i+400).map(d=>({user_id:user.id,id:d.id,kind:d.kind,data:d,updated_at:new Date().toISOString()})),{onConflict:'user_id,id'});
+    const{error}=await sb.from('fg_docs').upsert(docs.slice(i,i+400).map(d=>({user_id:user.id,id:d.id,kind:d.kind,data:d,updated_at:new Date().toISOString()})),{onConflict:'user_id,id'});
     if(error){cloudErr(error);return false}}
   return true;
 }
-async function drop(id){if(mode!=='cloud'){saveLocal();return}const{error}=await sb.from('docs').delete().eq('id',id);if(error)toast('No se pudo borrar.')}
+async function drop(id){if(mode!=='cloud'){saveLocal();return}const{error}=await sb.from('fg_docs').delete().eq('id',id);if(error)toast('No se pudo borrar.')}
 function upsert(doc,quiet){const arr=S[doc.kind];const i=arr.findIndex(x=>x.id===doc.id);i<0?arr.push(doc):arr[i]=doc;if(!quiet)render();return put(doc)}
 function remove(kind,id,msg){const arr=S[kind];const i=arr.findIndex(x=>x.id===id);if(i<0)return;last=arr[i];arr.splice(i,1);render();drop(id);toast(msg||'Eliminado',true)}
 function setSingle(kind,val){S[kind]=Object.assign({},val,{kind,id:kind});render();return put(S[kind])}
@@ -572,7 +572,7 @@ $('importfile').addEventListener('change',async e=>{const f=e.target.files[0];if
 $('fb').addEventListener('submit',async e=>{e.preventDefault();const m=$('fbtext').value.trim();if(!m)return;
   if(mode!=='cloud'){$('fbstatus').textContent='Crea una cuenta para enviar comentarios.';return}
   $('fbstatus').textContent='Enviando…';
-  const{error}=await sb.from('feedback').insert({user_id:user.id,email:user.email,message:m.slice(0,2000),page:location.hash||''});
+  const{error}=await sb.from('fg_feedback').insert({user_id:user.id,email:user.email,message:m.slice(0,2000),page:location.hash||''});
   $('fbstatus').textContent=error?'No se pudo enviar. Intenta de nuevo.':'¡Gracias! Lo recibimos.';if(!error)$('fbtext').value=''});
 $('logout').addEventListener('click',async()=>{
   if(mode==='cloud'&&sb)await sb.auth.signOut();
