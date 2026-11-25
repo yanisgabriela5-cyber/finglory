@@ -116,6 +116,36 @@ td.m.in{color:var(--grow)}
 .hero{font-size:clamp(40px,9vw,60px);font-weight:800;line-height:1;letter-spacing:-.03em;color:var(--snow);margin:14px 0 10px}.hero em{font-style:normal;color:var(--pink)}
 #auth .slab b{font-size:22px;line-height:1;display:flex;align-items:center;gap:10px;color:var(--lime)}
 .brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;flex:none}#auth .logo{width:36px;height:36px}
+.appbar{position:sticky;top:0;z-index:6;background:var(--bg);display:flex;align-items:center;gap:12px 20px;padding:12px max(4vw,16px);border-bottom:1px solid var(--line)}
+.appbar .brand{font-size:24px;flex:none}.appbar .logo{width:38px;height:38px}
+.tabs{display:flex;gap:4px;flex:1;justify-content:center;min-width:0}
+.tabs a{display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;white-space:nowrap}
+.tabs a svg{width:19px;height:19px;flex:none}.tabs .sh{display:none}
+.appbar+section.band,#app>section.band:not([hidden]){padding-top:clamp(28px,4vw,48px)}
+.tabs a:hover{background:var(--card)}
+.tabs a[aria-current=page]{background:var(--plum);color:var(--snow)}
+.appbar .mnav{flex:none}.appbar .mnav b{min-width:8.5em;font-size:15px}.appbar .icon{width:38px;min-height:38px}
+.me{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--card);color:var(--ink)}
+.me svg{width:22px;height:22px}.me[aria-current=page]{background:var(--plum);color:var(--snow)}
+.band+.band{border-top:0}
+section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var(--line)}
+@media(max-width:1100px){.tabs a{padding:9px 11px}.tabs a span{font-size:14px}}
+@media(max-width:980px){
+  .appbar{flex-wrap:wrap;padding:10px 16px}
+  .appbar .brand{font-size:21px}.appbar .logo{width:34px;height:34px}
+  .appbar .mnav{margin-left:auto;order:2}.me{order:3}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:7;justify-content:space-around;gap:0;background:var(--bg);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+  .tabs a{flex-direction:column;gap:3px;padding:6px 2px;flex:1 1 0;font-size:12px;border-radius:16px;min-width:0}
+  .tabs a span{font-size:12px}
+  .tabs .lg{display:none}.tabs .sh{display:inline}
+  .tabs a svg{width:22px;height:22px}
+  .tabs a[aria-current=page]{background:none;color:var(--plum)}
+  .tabs a[aria-current=page] svg{background:var(--lime);border-radius:12px;padding:3px 10px;width:44px;height:28px;color:#3E2F59}
+  :root[data-theme=dark] .tabs a[aria-current=page],.tabs a[aria-current=page]{color:var(--ink)}
+  #app{padding-bottom:84px}
+  .toast{bottom:92px}
+}
+@media(max-width:420px){.appbar .appname{display:none}.appbar .mnav b{min-width:6.5em;font-size:14px}}
 .err{color:var(--red);font-size:14px;margin:8px 0 0}
 .status{font-size:13px;color:var(--soft);margin-top:8px}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--plum);color:var(--snow);border-radius:20px;padding:8px 8px 8px 16px;display:none;align-items:center;gap:10px;z-index:8;max-width:calc(100vw - 32px)}
@@ -149,11 +179,13 @@ pre,.scroll{overflow-x:auto}
   <div class="acts"><button type="button" class="link" id="demo">Probar sin cuenta (se guarda solo en este dispositivo)</button></div>
 </div></div>
 <div id="app" hidden>
-<section class="band" id="resumen"><div class="wrap">
-  <div class="top">
-    <h1 class="brand"><svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#3E2F59"/><rect x="9" y="22" width="5" height="9" rx="2" fill="#C6ED58"/><rect x="17.5" y="16" width="5" height="15" rx="2" fill="#C6ED58"/><rect x="26" y="11" width="5" height="20" rx="2" fill="#C6ED58"/><circle cx="31" cy="8.5" r="3" fill="#DBB0CF"/></svg><span class="appname">FinGlory</span></h1>
-    <div class="mnav"><button class="icon" id="prev" aria-label="Mes anterior">‹</button><b id="mlabel"></b><button class="icon" id="next" aria-label="Mes siguiente">›</button></div>
-  </div>
+<header class="appbar">
+  <h1 class="brand"><svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#3E2F59"/><rect x="9" y="22" width="5" height="9" rx="2" fill="#C6ED58"/><rect x="17.5" y="16" width="5" height="15" rx="2" fill="#C6ED58"/><rect x="26" y="11" width="5" height="20" rx="2" fill="#C6ED58"/><circle cx="31" cy="8.5" r="3" fill="#DBB0CF"/></svg><span class="appname">FinGlory</span></h1>
+  <nav class="tabs" aria-label="Secciones"><a href="#inicio" data-view="inicio"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg><span>Inicio</span></a><a href="#movimientos" data-view="movimientos"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg><span class="lg">Movimientos</span><span class="sh">Registro</span></a><a href="#analizar" data-view="analizar"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 17v-3M12 17v-6M15 17v-4"/></svg><span>Analizar</span></a><a href="#metas" data-view="metas"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg><span>Metas</span></a><a href="#plan" data-view="plan"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span>Plan</span></a><a href="#habitos" data-view="habitos"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z"/></svg><span>Hábitos</span></a></nav>
+  <div class="mnav" id="mnav"><button class="icon" id="prev" aria-label="Mes anterior">‹</button><b id="mlabel"></b><button class="icon" id="next" aria-label="Mes siguiente">›</button></div>
+  <a class="me" href="#cuenta" data-view="cuenta" aria-label="Mi cuenta"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
+</header>
+<section class="band" id="resumen" data-v="inicio"><div class="wrap">
   <div class="grid">
     <div>
       <div class="slab">
@@ -188,11 +220,8 @@ pre,.scroll{overflow-x:auto}
   </div>
 </div></section>
 
-<nav class="scroll" aria-label="Secciones">
-  <a href="#banco">Analizar mi banco</a><a href="#movimientos">Movimientos</a><a href="#fijos">Gastos fijos</a><a href="#reparto">Reparto del salario</a><a href="#metas">Metas con propósito</a><a href="#deseos">Lista de deseos</a><a href="#hormiga">Gastos hormiga</a><a href="#tips">Tips para ti</a><a href="#historial">Historial</a><a href="#cuenta">Mi cuenta</a>
-</nav>
 
-<section class="band" id="banco"><div class="wrap">
+<section class="band" id="banco" data-v="analizar"><div class="wrap">
   <h2>Analizar mi estado de cuenta</h2>
   <p class="sub">Descarga tus movimientos desde la banca en línea (Excel o CSV con fecha, descripción y monto) y súbelos aquí. La app los clasifica, te pregunta lo que no entiende y te sugiere cómo ajustar el próximo mes. El archivo se lee en tu propio dispositivo.</p>
   <div class="grid" style="margin-top:16px">
@@ -211,13 +240,13 @@ pre,.scroll{overflow-x:auto}
   </div>
 </div></section>
 
-<section class="band" id="movimientos"><div class="wrap">
+<section class="band" id="movimientos" data-v="movimientos"><div class="wrap">
   <div class="head2"><h2 style="margin:0">Movimientos del mes</h2><button class="link" id="csv">Copiar como CSV</button></div>
   <div class="tools"><input id="q" type="search" placeholder="Buscar descripción…" aria-label="Buscar"><select id="fc" aria-label="Filtrar categoría"></select></div>
   <div id="list"></div>
 </div></section>
 
-<section class="band" id="fijos"><div class="wrap">
+<section class="band" id="fijos" data-v="plan"><div class="wrap">
   <h2>Gastos fijos</h2>
   <p class="sub">Lo que pagas todos los meses. Regístralos con un toque cuando los pagues; mientras estén pendientes, se descuentan de tu dinero "libre de verdad".</p>
   <div id="fixedlist" style="margin-top:12px"></div>
@@ -230,7 +259,7 @@ pre,.scroll{overflow-x:auto}
   </form>
 </div></section>
 
-<section class="band" id="reparto"><div class="wrap">
+<section class="band" id="reparto" data-v="plan"><div class="wrap">
   <h2>Reparto del salario</h2>
   <p class="sub">Apenas te paguen, separa primero lo importante. Ajusta los porcentajes a tu gusto; deben sumar 100%.</p>
   <div class="grid" style="margin-top:16px">
@@ -247,7 +276,7 @@ pre,.scroll{overflow-x:auto}
   </div>
 </div></section>
 
-<section class="band" id="metas"><div class="wrap">
+<section class="band" id="metas" data-v="metas"><div class="wrap">
   <h2>Metas con propósito</h2>
   <p class="sub">Cada meta lleva su "para qué" y, si le pones fecha, cuánto apartar por quincena. Lo que aportas se resta de tu disponible del mes, así ese dinero no se gasta.</p>
   <div class="cards" id="goals"></div>
@@ -261,7 +290,7 @@ pre,.scroll{overflow-x:auto}
   <div class="presets" id="presets"></div>
 </div></section>
 
-<section class="band" id="deseos"><div class="wrap">
+<section class="band" id="deseos" data-v="metas"><div class="wrap">
   <h2>Lista de deseos</h2>
   <p class="sub">Para compras grandes: anótala, espera los días que elijas y luego decide con la cabeza fría. Mientras tanto ves cuánto te alejaría de tus metas.</p>
   <div class="cards" id="wishes"></div>
@@ -273,26 +302,26 @@ pre,.scroll{overflow-x:auto}
   </form>
 </div></section>
 
-<section class="band" id="hormiga"><div class="wrap">
+<section class="band" id="hormiga" data-v="habitos"><div class="wrap">
   <h2>Gastos hormiga</h2>
   <p class="sub">Gastos pequeños (menos de $10) que se repiten. Uno solo no parece nada; juntos sí.</p>
   <div id="ants" style="margin-top:12px"></div>
 </div></section>
 
-<section class="band" id="tips"><div class="wrap">
+<section class="band" id="tips" data-v="habitos"><div class="wrap">
   <h2>Tips para ti</h2>
   <p class="sub">Salen de tus propios gastos del mes: dónde repites, dónde te pasas y qué puedes hacer distinto sin dejar de vivir.</p>
   <div class="cards" id="tiplist"></div>
 </div></section>
 
-<section class="band" id="historial"><div class="wrap">
+<section class="band" id="historial" data-v="habitos"><div class="wrap">
   <h2>Últimos 6 meses</h2>
   <p class="sub">Cuánto entró y cuánto salió cada mes, para ver si vas mejorando.</p>
   <div class="legend"><span><i style="background:var(--growbar)"></i>Ingresos</span><span><i style="background:var(--bar)"></i>Gastos</span></div>
   <div class="hist" id="hist"></div>
 </div></section>
 
-<section class="band" id="cuenta"><div class="wrap">
+<section class="band" id="cuenta" data-v="cuenta"><div class="wrap">
   <h2>Mi cuenta</h2>
   <div class="grid" style="margin-top:12px">
     <div>
@@ -328,7 +357,7 @@ pre,.scroll{overflow-x:auto}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="config.js?v=4"></script>
-<script src="app.js?v=4"></script>
+<script src="config.js?v=7"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

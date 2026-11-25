@@ -124,7 +124,7 @@ function roomElsewhere(cat,ym,need){const T=totals(ym);let best=null;
 
 // ============ pintar la app ============
 function render(){
-  $('mlabel').textContent=cap(ymLabel(month));
+  $('mlabel').textContent=innerWidth<=420?cap(MESES[Number(month.slice(5))-1].slice(0,3))+' '+month.slice(0,4):cap(ymLabel(month));
   renderTop();renderList();renderFixed();renderSplit();renderGoals();renderWishes();renderAnts();renderTips();renderHist();renderAnalysis();renderAccount();
 }
 function renderTop(){
@@ -276,7 +276,7 @@ $('f').addEventListener('submit',e=>{e.preventDefault();
   const date=$('date').value||today();
   const tx={kind:'tx',id:uid(),type,amount:a,cat:$('cat').value,desc:$('desc').value.trim().slice(0,120),date};
   const reset=()=>{month=date.slice(0,7);$('amt').value='';$('desc').value='';render();$('amt').focus()};
-  if(type==='ingreso'){commit(tx,()=>{lastIncome=a;$('samt').value=a.toFixed(2);reset();toast('Ingreso guardado. Mira en "Reparto del salario" cómo dividirlo.')});return}
+  if(type==='ingreso'){commit(tx,()=>{lastIncome=a;$('samt').value=a.toFixed(2);reset();toast('Ingreso guardado. En Plan → Reparto del salario ves cómo dividirlo.')});return}
   addGasto(tx,reset);
 });
 
@@ -301,7 +301,7 @@ document.addEventListener('click',e=>{
   else if(d.qmore!==undefined){imports.showAll=true;renderAnalysis()}
   else if(d.acat!==undefined){openCat=openCat===d.acat?null:d.acat;renderAnalysis()}
   else if(d.rdel!==undefined)forgetRule(d.rdel);
-  else if(t.id==='applyb'){const pb=currentAnalysis()?.presupuesto||{};for(const c of GASTOS)if(Number(pb[c])>0)S.budgets[c]=Number(pb[c]);put({kind:'budgets',id:'budgets',map:S.budgets});render();toast('Presupuesto actualizado');$('resumen').scrollIntoView?.()}
+  else if(t.id==='applyb'){const pb=currentAnalysis()?.presupuesto||{};for(const c of GASTOS)if(Number(pb[c])>0)S.budgets[c]=Number(pb[c]);put({kind:'budgets',id:'budgets',map:S.budgets});render();toast('Presupuesto actualizado');show('inicio')}
   else if(t.id==='importb')doImport();
   else if(t.id==='discardb'){imports=null;openCat=null;render()}
 });
@@ -551,7 +551,7 @@ $('analyze').addEventListener('click',async()=>{
   imports={all,fresh,dup,own,questions:buildQuestions(all),learned,showAll:false};openCat=null;
   const qn=imports.questions.length;
   st(qn?`Encontré ${all.length} movimientos. Tengo ${qn} ${qn===1?'pregunta':'preguntas'} para ti antes de importar.`:`Listo: ${all.length} movimientos analizados.`);
-  renderAnalysis();$('banco').scrollIntoView?.();
+  renderAnalysis();scrollTo(0,0);
 });
 async function doImport(){
   if(!imports||!imports.fresh.length)return;
@@ -605,7 +605,7 @@ async function startApp(m){
   mode=m;$('auth').hidden=true;$('app').hidden=false;
   if(m==='cloud'){setStatus('Cargando tus datos…');try{await loadCloud();setStatus('')}catch(e){setStatus('No se pudieron cargar tus datos. Revisa tu conexión y recarga.')}}
   else loadLocal();
-  splitDraft=null;$('date').value=today();fillCats();render();
+  splitDraft=null;$('date').value=today();fillCats();render();show(location.hash.slice(1)||'inicio');
 }
 $('toSignup').addEventListener('click',()=>showAuth(authMode==='signup'?'login':'signup'));
 $('toReset').addEventListener('click',()=>showAuth('reset'));
@@ -629,6 +629,23 @@ $('authf').addEventListener('submit',async e=>{e.preventDefault();
   }catch(err){$('autherr').textContent=AUTH_ERR(String(err&&(err.code||'')+' '+(err.message||'')))}
   finally{$('authgo').disabled=false}
 });
+
+// ============ pantallas ============
+const VIEWS=['inicio','movimientos','analizar','metas','plan','habitos','cuenta'];
+const ALIAS={resumen:'inicio',banco:'analizar',fijos:'plan',reparto:'plan',deseos:'metas',hormiga:'habitos',tips:'habitos',historial:'habitos'};
+const MONTHLY=new Set(['inicio','movimientos','plan','habitos']);
+let view='inicio';
+function show(v,keepScroll){
+  v=ALIAS[v]||v;if(!VIEWS.includes(v))v='inicio';view=v;
+  document.querySelectorAll('section[data-v]').forEach(s=>{s.hidden=s.dataset.v!==v});
+  document.querySelectorAll('[data-view]').forEach(a=>{if(a.dataset.view===v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  $('mnav').style.visibility=MONTHLY.has(v)?'visible':'hidden';
+  if(location.hash!=='#'+v)try{history.replaceState(null,'','#'+v)}catch(e){}
+  if(!keepScroll)scrollTo(0,0);
+}
+addEventListener('hashchange',()=>show(location.hash.slice(1)));
+document.addEventListener('click',e=>{const a=e.target.closest('a[data-view]');if(!a||e.metaKey||e.ctrlKey)return;e.preventDefault();const v=a.dataset.view;if(v!==view){try{history.pushState(null,'','#'+v)}catch(err){}}show(v)});
+addEventListener('resize',()=>{$('mlabel')&&($('mlabel').textContent=innerWidth<=420?cap(MESES[Number(month.slice(5))-1].slice(0,3))+' '+month.slice(0,4):cap(ymLabel(month)))});
 
 // ============ inicio ============
 fillCats();$('date').value=today();
