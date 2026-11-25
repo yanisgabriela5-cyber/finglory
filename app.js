@@ -100,6 +100,14 @@ const goalSaved=g=>sumAmt(S.tx.filter(t=>t.type==='ahorro'&&t.goal===g.id));
 const fxId=(f,ym)=>'fx-'+f.id+'-'+ym;
 const fixedPending=ym=>S.fixed.filter(f=>!S.tx.some(t=>t.id===fxId(f,ym)));
 const fType=f=>f.type==='ingreso'?'ingreso':'gasto';
+// ---- descuentos de ley en Panamá (asalariados): CSS 9.75%, Seguro Educativo 1.25%, ISR progresivo anual
+const PAY={css:.0975,se:.0125};
+const isrAnnual=a=>a<=11000?0:a<=50000?(a-11000)*.15:5850+(a-50000)*.25;
+const r2=x=>Math.round(x*100)/100;
+function payroll(bruto,pago){const k=pago==='q'?2:1;return{bruto:r2(bruto),css:r2(bruto*PAY.css),se:r2(bruto*PAY.se),isr:r2(isrAnnual(bruto*k*13)/13/k),otros:0,pago}}
+const brkTotal=b=>(b.css||0)+(b.se||0)+(b.isr||0);
+const payOn=()=>!!(S.settings&&S.settings.payroll);
+const fixedAmt=f=>{if(f.gross&&fType(f)==='ingreso'){const p=payroll(Number(f.amount)||0,f.pago||'q');return r2(p.bruto-brkTotal(p))}return Number(f.amount)||0};
 const rhythm=()=>period==='mes'?'mes':'quincena';
 const RLABEL=()=>rhythm()==='mes'?'al mes':'por quincena';
 const nPer=n=>rhythm()==='mes'?(n===1?'mes':'meses'):(n===1?'quincena':'quincenas');
@@ -157,8 +165,9 @@ function renderTop(){
   document.querySelector('#resumen .slab .k').textContent='Disponible en '+PNAME[period];
   $('avail').textContent=money(T.avail);$('tin').textContent=money(T.inc);$('tout').textContent=money(T.out);$('tsave').textContent=money(T.sav);
   const pend=fixedPending(month).filter(f=>dayIn(Number(f.day)||1));
-  const pg=sumAmt(pend.filter(f=>fType(f)==='gasto')),pi=sumAmt(pend.filter(f=>fType(f)==='ingreso'));
-  $('free').textContent=S.fixed.length?((pg||pi)?[pg?`Gastos fijos por pagar: ${money(pg)}`:'',pi?`Ingresos fijos por recibir: ${money(pi)}`:'',`Libre de verdad: ${money(T.avail-pg+pi)}`].filter(Boolean).join(' · '):'Todo lo fijo de este periodo ya está registrado.'):'Agrega tus gastos e ingresos fijos (en Plan) para ver cuánto te queda libre de verdad.';
+  const pg=sumAmt(pend.filter(f=>fType(f)==='gasto')),pi=pend.filter(f=>fType(f)==='ingreso').reduce((a,f)=>a+fixedAmt(f),0);
+  const dl=ofPeriod().filter(t=>t.breakdown).reduce((a,t)=>a+brkTotal(t.breakdown),0);
+  $('free').textContent=(dl?`Descuentos de ley: ${money(dl)} · `:'')+(S.fixed.length?((pg||pi)?[pg?`Gastos fijos por pagar: ${money(pg)}`:'',pi?`Ingresos fijos por recibir: ${money(pi)}`:'',`Libre de verdad: ${money(T.avail-pg+pi)}`].filter(Boolean).join(' · '):'Todo lo fijo de este periodo ya está registrado.'):'Agrega tus gastos e ingresos fijos (en Plan) para ver cuánto te queda libre de verdad.');
   const cats=editing?GASTOS.slice():GASTOS.filter(c=>T.by[c]||S.budgets[c]);
   const bud=c=>(S.budgets[c]||0)*(editing?1:sc);
   const max=Math.max(1,...cats.map(c=>Math.max(T.by[c]||0,bud(c))));
@@ -178,7 +187,7 @@ function renderList(){
     .sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.id).localeCompare(String(a.id)));
   $('list').innerHTML=rows.length?`<table class="mlist"><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="m">Monto</th><th></th></tr></thead><tbody>${rows.map(t=>{
     const d=String(t.date).slice(8,10)+'/'+String(t.date).slice(5,7);
-    return `<tr data-edit="${esc(t.id)}" tabindex="0"><td class="c-d">${esc(d)}</td><td class="c-t"><span class="t1">${esc(t.desc||'—')}</span><span class="t2">${esc(d)} · ${esc(t.cat)}</span></td><td class="c-c">${esc(t.cat)}</td><td class="m${t.type==='ingreso'?' in':''}">${t.type==='ingreso'?'+':'-'}${money(t.amount)}</td><td class="c-x"><button class="x" data-del="${esc(t.id)}" aria-label="Eliminar ${esc(t.desc||'movimiento')}"><span class="lg">Eliminar</span><span class="sh" aria-hidden="true">✕</span></button></td></tr>`}).join('')}</tbody></table>`
+    return `<tr data-edit="${esc(t.id)}" tabindex="0"><td class="c-d">${esc(d)}</td><td class="c-t"><span class="t1">${esc(t.desc||'—')}</span><span class="t2">${esc(d)} · ${esc(t.cat)}${t.breakdown?' · bruto '+money(t.breakdown.bruto):''}</span></td><td class="c-c">${esc(t.cat)}</td><td class="m${t.type==='ingreso'?' in':''}">${t.type==='ingreso'?'+':'-'}${money(t.amount)}</td><td class="c-x"><button class="x" data-del="${esc(t.id)}" aria-label="Eliminar ${esc(t.desc||'movimiento')}"><span class="lg">Eliminar</span><span class="sh" aria-hidden="true">✕</span></button></td></tr>`}).join('')}</tbody></table>`
     :`<p class="empty">${q||fc?'Nada coincide con la búsqueda.':'No hay movimientos en '+esc(period==='mes'?ymLabel(month):PNAME[period]+' de '+ymLabel(month))+'.'}</p>`;
 }
 function renderFixed(){
@@ -190,8 +199,9 @@ function renderFixed(){
   $('fixedlist').innerHTML=`<table class="mlist fx"><thead><tr><th>Día</th><th>Nombre</th><th>Categoría</th><th class="m">Monto</th><th>Estado</th><th></th></tr></thead><tbody>${list.map(f=>{
     const done=!pend.includes(f);
     const inc=fType(f)==='ingreso';
-    return `<tr><td class="c-d">${esc(f.day)}</td><td class="c-t"><span class="t1">${esc(f.name)}</span><span class="t2">Día ${esc(f.day)} · ${esc(f.cat)}</span></td><td class="c-c">${esc(f.cat)}</td><td class="m${inc?' in':''}">${inc?'+':''}${money(f.amount)}</td><td class="c-s">${done?`<span class="ok">${inc?'Recibido':'Registrado'}</span>`:`<button class="x pri" data-fx="${esc(f.id)}">${inc?'Registrar cobro':'Registrar pago'}</button>`}</td><td class="c-x"><button class="x" data-dfx="${esc(f.id)}" aria-label="Quitar ${esc(f.name)}"><span class="lg">Quitar</span><span class="sh" aria-hidden="true">✕</span></button></td></tr>`}).join('')}</tbody></table>
-  <div class="line"><span class="sub" style="flex:1 1 200px">En ${PNAME[period]}: gastos fijos <b>${money(sumAmt(list.filter(f=>fType(f)==='gasto')))}</b>${list.some(f=>fType(f)==='ingreso')?` · ingresos fijos <b>${money(sumAmt(list.filter(f=>fType(f)==='ingreso')))}</b>`:''}${pend.length?` · pendientes: <b>${pend.length}</b>`:''}${others?` · ${others} más en la otra quincena`:''}</span>${pend.length>1?'<button id="fxall">Registrar todos los pendientes</button>':''}</div>`;
+    const gr=inc&&f.gross;
+    return `<tr><td class="c-d">${esc(f.day)}</td><td class="c-t"><span class="t1">${esc(f.name)}</span><span class="t2">Día ${esc(f.day)} · ${esc(f.cat)}${gr?' · bruto '+money(f.amount):''}</span></td><td class="c-c">${esc(f.cat)}</td><td class="m${inc?' in':''}">${inc?'+':''}${money(fixedAmt(f))}</td><td class="c-s">${done?`<span class="ok">${inc?'Recibido':'Registrado'}</span>`:`<button class="x pri" data-fx="${esc(f.id)}">${inc?'Registrar cobro':'Registrar pago'}</button>`}</td><td class="c-x"><button class="x" data-dfx="${esc(f.id)}" aria-label="Quitar ${esc(f.name)}"><span class="lg">Quitar</span><span class="sh" aria-hidden="true">✕</span></button></td></tr>`}).join('')}</tbody></table>
+  <div class="line"><span class="sub" style="flex:1 1 200px">En ${PNAME[period]}: gastos fijos <b>${money(sumAmt(list.filter(f=>fType(f)==='gasto')))}</b>${list.some(f=>fType(f)==='ingreso')?` · ingresos fijos <b>${money(list.filter(f=>fType(f)==='ingreso').reduce((a,f)=>a+fixedAmt(f),0))}</b>`:''}${pend.length?` · pendientes: <b>${pend.length}</b>`:''}${others?` · ${others} más en la otra quincena`:''}</span>${pend.length>1?'<button id="fxall">Registrar todos los pendientes</button>':''}</div>`;
 }
 function renderSplit(){
   if(!splitDraft)splitDraft=JSON.parse(JSON.stringify((S.split&&S.split.rules)||DEFAULT_SPLIT));
@@ -272,6 +282,10 @@ function renderTips(){
   const pp=periodProgress();
   if(pp&&pp.elapsed>=3&&pp.elapsed<pp.total&&out>0){const proj=out/pp.elapsed*pp.total;
     if(inc>0&&proj>inc)add('warn',8.5,'A este ritmo gastarás más de lo que entra','~'+money(proj),`Llevas ${money(out)} en ${pp.elapsed} de ${pp.total} días. Entraron ${money(inc)}.`,[`Para no pasarte, gasta máximo ${money(Math.max(0,(inc-out)/(pp.total-pp.elapsed)))} por día lo que queda.`,'Deja para la próxima quincena lo que no sea urgente.'])}
+  // 1b) descuentos de ley
+  const brs=L.filter(t=>t.breakdown).map(t=>t.breakdown);
+  if(brs.length){const sm=k=>brs.reduce((a,b)=>a+(b[k]||0),0),dl=sm('css')+sm('se')+sm('isr');
+    add('info',3.2,'Descuentos de ley en '+PNAME[period],money(dl),`Salario bruto ${money(sm('bruto'))}: Seguro Social ${money(sm('css'))}, Seguro Educativo ${money(sm('se'))}, impuesto sobre la renta ${money(sm('isr'))}${sm('otros')?`, otros ${money(sm('otros'))}`:''}. Recibiste ${money(sm('bruto')-dl-sm('otros'))}.`,['Compara con tu talonario; si algo no coincide, toca el movimiento y corrígelo.','Arma tu presupuesto con el neto: es lo que de verdad llega a tu cuenta.'])}
   // 3) categoría que más pesa
   const cats=Object.entries(T.by).sort((a,b)=>b[1]-a[1]);
   if(cats.length&&out>=20){const[c,v]=cats[0],sh=v/out;if(sh>=.3&&c!=='Diezmo y ofrendas')add(ESENCIALES.has(c)?'info':'warn',5+sh*3,`${c} es el ${Math.round(sh*100)}% de tus gastos`,money(v),`Es tu categoría más grande en ${PNAME[period]}.`,tipsFor(c,2))}
@@ -321,13 +335,30 @@ function renderAccount(){
   $('whoami').textContent=mode==='cloud'?`Entraste como ${user&&user.email||''}. Tus datos se guardan en tu cuenta y solo tú los ves.`:'Estás probando sin cuenta: los datos se guardan solo en este dispositivo. Crea una cuenta para no perderlos y usarlos en tu celular y computadora.';
   if(document.activeElement!==$('bankname'))$('bankname').value=(S.settings&&S.settings.bankName)||'';
   $('logout').textContent=mode==='cloud'?'Cerrar sesión':'Salir del modo prueba';
+  $('payroll').checked=payOn();syncX();syncBrk(false);
 }
 
 // ============ registrar con alerta de presupuesto ============
-function fillCats(){$('cat').innerHTML=opts(type==='gasto'?GASTOS:INGRESOS);document.querySelectorAll('#f .seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===type))}
+function fillCats(){$('cat').innerHTML=opts(type==='gasto'?GASTOS:INGRESOS);document.querySelectorAll('#f .seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===type));brkDirty={};$('brkpago').value=rhythm()==='mes'?'m':'q';syncBrk(true)}
+let brkDirty={};
+const brkVisible=()=>payOn()&&type==='ingreso'&&$('cat').value==='Salario';
+const brkActive=()=>brkVisible()&&$('brkon').checked;
+function syncBrk(recalc){
+  $('brk').hidden=!brkVisible();const on=brkActive();$('brkbody').hidden=!on;$('amtlbl').textContent=on?'Salario bruto (antes de descuentos)':'Monto';
+  if(!on)return;const b=num($('amt').value),bb=b>0?b:0;
+  if(recalc){const p=payroll(bb,$('brkpago').value);for(const[k,id]of[['css','bcss'],['se','bse'],['isr','bisr']])if(!brkDirty[id])$(id).value=bb?p[k].toFixed(2):''}
+  const net=bb-['bcss','bse','bisr','botr'].reduce((a,id)=>a+(num($(id).value)||0),0);
+  $('bnet').textContent=money(net);$('bnet').style.color=net<0?'var(--red)':''}
+$('amt').addEventListener('input',()=>syncBrk(true));
+$('cat').addEventListener('change',()=>{brkDirty={};syncBrk(true)});
+$('brkon').addEventListener('change',()=>syncBrk(true));
+$('brkpago').addEventListener('change',()=>{brkDirty={};syncBrk(true)});
+['bcss','bse','bisr','botr'].forEach(id=>$(id).addEventListener('input',()=>{brkDirty[id]=true;syncBrk(false)}));
 $('fc').innerHTML='<option value="">Todas las categorías</option>'+opts([...GASTOS,...INGRESOS,'Ahorro y metas']);
 $('xcat').innerHTML=opts(GASTOS);$('xcat').value='Casa y servicios';
-$('xtype').addEventListener('change',()=>{const inc=$('xtype').value==='ingreso';$('xcat').innerHTML=opts(inc?INGRESOS:GASTOS);$('xcat').value=inc?'Salario':'Casa y servicios';$('xname').placeholder=inc?'Ej. Quincena':'Ej. Plan del celular'});
+$('xtype').addEventListener('change',()=>{const inc=$('xtype').value==='ingreso';$('xcat').innerHTML=opts(inc?INGRESOS:GASTOS);$('xcat').value=inc?'Salario':'Casa y servicios';$('xname').placeholder=inc?'Ej. Quincena':'Ej. Plan del celular';syncX()});
+function syncX(){$('xgrossw').hidden=!(payOn()&&$('xtype').value==='ingreso'&&$('xcat').value==='Salario');$('xpago').value=rhythm()==='mes'?'m':'q'}
+$('xcat').addEventListener('change',syncX);
 const qOf=d=>Number(String(d).slice(8,10))<=15?'q1':'q2';
 const spentIn=(cat,date)=>sumAmt(S.tx.filter(t=>t.type==='gasto'&&t.cat===cat&&String(t.date).slice(0,7)===String(date).slice(0,7)&&(rhythm()==='mes'||qOf(t.date)===qOf(date))));
 function addGasto(tx,after){
@@ -367,8 +398,11 @@ $('f').addEventListener('submit',e=>{e.preventDefault();
   const a=num($('amt').value);if(!(a>0)){$('amt').focus();return}
   const date=$('date').value||today();
   const tx={kind:'tx',id:uid(),type,amount:a,cat:$('cat').value,desc:$('desc').value.trim().slice(0,120),date};
-  const reset=()=>{month=date.slice(0,7);$('amt').value='';$('desc').value='';render();$('amt').focus()};
-  if(type==='ingreso'){commit(tx,()=>{lastIncome=a;$('samt').value=a.toFixed(2);reset();toast('Ingreso guardado. En Plan → Reparto del salario ves cómo dividirlo.')});return}
+  if(type==='ingreso'&&brkActive()){const g=id=>Math.max(0,num($(id).value)||0);const br={bruto:a,css:g('bcss'),se:g('bse'),isr:g('bisr'),otros:g('botr'),pago:$('brkpago').value};
+    const net=r2(a-br.css-br.se-br.isr-br.otros);if(!(net>0)){toast('Los descuentos no pueden ser mayores que el salario.');return}
+    tx.amount=net;tx.breakdown=br;if(!tx.desc)tx.desc=br.pago==='q'?'Quincena':'Salario'}
+  const reset=()=>{month=date.slice(0,7);$('amt').value='';$('desc').value='';$('botr').value='';brkDirty={};syncBrk(true);render();$('amt').focus()};
+  if(type==='ingreso'){commit(tx,()=>{lastIncome=tx.amount;$('samt').value=tx.amount.toFixed(2);reset();toast('Ingreso guardado. En Plan → Reparto del salario ves cómo dividirlo.')});return}
   addGasto(tx,reset);
 });
 
@@ -410,7 +444,7 @@ document.addEventListener('click',e=>{
   else if(t.id==='importb')doImport();
   else if(t.id==='discardb'){imports=null;openCat=null;render()}
 });
-const fixedTx=f=>{const day=Math.min(Number(f.day)||1,new Date(Number(month.slice(0,4)),Number(month.slice(5)),0).getDate());return{kind:'tx',id:fxId(f,month),type:fType(f),amount:f.amount,cat:f.cat,desc:f.name,fixed:f.id,date:month+'-'+pad(day)}};
+const fixedTx=f=>{const day=Math.min(Number(f.day)||1,new Date(Number(month.slice(0,4)),Number(month.slice(5)),0).getDate());const br=f.gross&&fType(f)==='ingreso'?payroll(Number(f.amount)||0,f.pago||'q'):null;return{kind:'tx',id:fxId(f,month),type:fType(f),amount:fixedAmt(f),...(br?{breakdown:br}:{}),cat:f.cat,desc:f.name,fixed:f.id,date:month+'-'+pad(day)}};
 function registerFixed(f){upsert(fixedTx(f))}
 document.addEventListener('change',e=>{const el=e.target;if(!el.dataset)return;
   if(el.dataset.qs!==undefined&&el.value){answerQ(Number(el.dataset.qs),el.value);return}
@@ -426,7 +460,7 @@ $('gf').addEventListener('submit',e=>{e.preventDefault();const n=$('gname').valu
   if(!n||!(a>0))return;const ok=p>=1&&p<=999;
   upsert({kind:'goal',id:uid(),name:n,target:a,deadline:ok?addPlazo(today(),p,u):'',plazo:ok?{n:p,u}:null,created:today(),why:$('gwhy').value.trim().slice(0,140)});['gname','gtarget','gplazo','gwhy'].forEach(i=>$(i).value='')});
 $('xf').addEventListener('submit',e=>{e.preventDefault();const n=$('xname').value.trim().slice(0,60),a=num($('xamt').value);
-  if(!n||!(a>0))return;upsert({kind:'fixed',id:uid(),type:$('xtype').value==='ingreso'?'ingreso':'gasto',name:n,amount:a,cat:$('xcat').value,day:Math.max(1,Math.min(31,parseInt($('xday').value)||1))});$('xname').value='';$('xamt').value=''});
+  if(!n||!(a>0))return;const xg=!$('xgrossw').hidden&&$('xgross').checked;upsert({kind:'fixed',id:uid(),type:$('xtype').value==='ingreso'?'ingreso':'gasto',name:n,amount:a,cat:$('xcat').value,...(xg?{gross:true,pago:$('xpago').value}:{}),day:Math.max(1,Math.min(31,parseInt($('xday').value)||1))});$('xname').value='';$('xamt').value=''});
 $('wf').addEventListener('submit',e=>{e.preventDefault();const n=$('wname').value.trim().slice(0,60),a=num($('wprice').value);
   if(!n||!(a>0))return;const p=parseInt($('wplazo').value),u=$('wunit').value,ok=p>=1&&p<=999;
   upsert({kind:'wish',id:uid(),name:n,price:a,added:Date.now(),due:ok?addPlazo(today(),p,u):'',plazo:ok?{n:p,u}:null});$('wname').value='';$('wprice').value=''});
@@ -674,6 +708,7 @@ async function doImport(){
 }
 
 // ============ cuenta, respaldo y comentarios ============
+$('payroll').addEventListener('change',()=>{setSingle('settings',Object.assign({},S.settings||{},{payroll:$('payroll').checked}));toast($('payroll').checked?'Listo: al registrar tu salario verás los descuentos de ley.':'Desglose de descuentos desactivado.')});
 $('savebank').addEventListener('click',()=>{setSingle('settings',Object.assign({},S.settings||{},{bankName:$('bankname').value.trim().slice(0,80)}));toast('Guardado')});
 $('exportb').addEventListener('click',()=>{
   const blob=new Blob([JSON.stringify({app:CFG.appName,version:1,exported:new Date().toISOString(),docs:allDocs()},null,1)],{type:'application/json'});
@@ -760,6 +795,7 @@ $('ef').addEventListener('submit',e=>{e.preventDefault();if(!editTx)return;
   if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){$('eerr').textContent='Elige una fecha.';return}
   const t=Object.assign({},editTx,{amount:a,desc:$('edesc').value.trim().slice(0,120),date:d});
   if(t.type!=='ahorro'){t.type=eType;t.cat=$('ecat').value}
+  if(t.breakdown&&(t.amount!==editTx.amount||t.type!=='ingreso'))delete t.breakdown;
   delete t.over;closeEdit();upsert(t);toast('Cambios guardados')});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&editTx)closeEdit();
   if(e.key==='Enter'&&e.target.matches&&e.target.matches('tr[data-edit]'))openEdit(e.target.dataset.edit)});

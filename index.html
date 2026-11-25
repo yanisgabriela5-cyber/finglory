@@ -193,6 +193,14 @@ section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var
 .ctrls input,.ctrls select{flex:1 1 90px;width:auto;min-height:40px}
 .ctrls button{min-height:40px}
 .when{font-size:14px;color:var(--soft);margin-top:10px;flex-basis:100%}
+.chk{display:flex;gap:10px;align-items:flex-start;font-weight:600;font-size:15px;cursor:pointer;margin:12px 0 0}
+.chk input{width:20px;height:20px;min-height:0;flex:none;margin-top:2px;accent-color:#3E2F59}
+.brk{background:var(--bg);border-radius:16px;padding:12px 14px;margin-top:12px}
+.brk label[for]{margin-top:10px}
+.brow{display:grid;grid-template-columns:minmax(0,1fr) 7.5em;gap:10px;align-items:center;padding:6px 0;font-size:14px;border-bottom:1px solid var(--line)}
+.brow input{min-height:38px;text-align:right}
+.brow.tot{border:0;font-size:16px}.brow.tot b{text-align:right;color:var(--grow);font-size:18px}
+#xgrossw select{margin-top:8px}
 .err{color:var(--red);font-size:14px;margin:8px 0 0}
 .status{font-size:13px;color:var(--soft);margin-top:8px}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--plum);color:var(--snow);border-radius:20px;padding:8px 8px 8px 16px;display:none;align-items:center;gap:10px;z-index:8;max-width:calc(100vw - 32px)}
@@ -255,10 +263,23 @@ pre,.scroll{overflow-x:auto}
     <form class="card" id="f">
       <h2>Registrar</h2>
       <div class="seg" role="group" aria-label="Tipo"><button type="button" data-t="gasto" aria-pressed="true">Gasto</button><button type="button" data-t="ingreso" aria-pressed="false">Ingreso</button></div>
-      <label for="amt">Monto</label>
+      <label for="amt" id="amtlbl">Monto</label>
       <input id="amt" class="amt" inputmode="decimal" placeholder="0.00" required autocomplete="off">
       <label for="cat">Categoría</label>
       <select id="cat"></select>
+      <div class="brk" id="brk" hidden>
+        <label class="chk"><input type="checkbox" id="brkon" checked> Desglosar descuentos de ley (Panamá)</label>
+        <div id="brkbody">
+          <label for="brkpago">Este pago es</label>
+          <select id="brkpago"><option value="q">Quincenal</option><option value="m">Mensual</option></select>
+          <div class="brow"><span>Seguro Social (9.75%)</span><input id="bcss" inputmode="decimal" aria-label="Seguro Social"></div>
+          <div class="brow"><span>Seguro Educativo (1.25%)</span><input id="bse" inputmode="decimal" aria-label="Seguro Educativo"></div>
+          <div class="brow"><span>Impuesto sobre la renta (estimado)</span><input id="bisr" inputmode="decimal" aria-label="Impuesto sobre la renta"></div>
+          <div class="brow"><span>Otros descuentos (préstamos, cuotas)</span><input id="botr" inputmode="decimal" placeholder="0.00" aria-label="Otros descuentos"></div>
+          <div class="brow tot"><span>Neto que recibes</span><b id="bnet">$0.00</b></div>
+          <p class="sub" style="font-size:13px">Estimado con las tasas de ley. Si tu talonario dice otra cosa, corrige los montos. Se guarda como ingreso el neto.</p>
+        </div>
+      </div>
       <label for="desc">Descripción</label>
       <input id="desc" placeholder="Ej. almuerzo, gasolina, luz" autocomplete="off">
       <label for="date">Fecha</label>
@@ -305,6 +326,7 @@ pre,.scroll{overflow-x:auto}
     <div><label for="xamt">Monto</label><input id="xamt" inputmode="decimal" placeholder="0.00" required></div>
     <div><label for="xcat">Categoría</label><select id="xcat"></select></div>
     <div><label for="xday">Día de pago</label><input id="xday" type="number" min="1" max="31" value="15"></div>
+    <div class="pz" id="xgrossw" hidden><label class="chk" style="margin-top:0"><input type="checkbox" id="xgross"> El monto es bruto: calcular descuentos de ley al registrarlo</label><select id="xpago" aria-label="Frecuencia del pago"><option value="q">Pago quincenal</option><option value="m">Pago mensual</option></select></div>
     <button class="pri" type="submit">Añadir fijo</button>
   </form>
 </div></section>
@@ -379,6 +401,7 @@ pre,.scroll{overflow-x:auto}
       <label for="bankname">Tu nombre como aparece en el banco</label>
       <input id="bankname" placeholder="Ej. MARIA JOSE PEREZ" autocomplete="off">
       <p class="sub">Sirve para reconocer las transferencias entre tus propias cuentas y no contarlas como gastos o ingresos.</p>
+      <label class="chk" style="margin-top:16px"><input type="checkbox" id="payroll"> Soy asalariada/o en Panamá: mostrar los descuentos de ley (Seguro Social, Seguro Educativo e impuesto sobre la renta) al registrar mi salario</label>
       <div class="acts"><button id="savebank">Guardar</button><button id="exportb">Descargar respaldo</button><label class="btnlike" for="importfile" style="margin:0">Restaurar respaldo<input type="file" id="importfile" accept=".json" hidden></label><button id="logout">Cerrar sesión</button></div>
       <p class="status" id="acstatus"></p>
       <label style="margin-top:22px">Apariencia</label>
@@ -422,7 +445,7 @@ pre,.scroll{overflow-x:auto}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="config.js?v=13"></script>
-<script src="app.js?v=13"></script>
+<script src="config.js?v=14"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>

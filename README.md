@@ -16,6 +16,7 @@ FinGlory es una web app para saber en qué se va tu dinero: registra gastos e in
 - **Metas:** metas con propósito y lista de deseos con plazo libre (días, semanas o meses), cuánto apartar según tu ritmo y botón para apartar dinero para cada deseo.
 - **Hábitos:** tips que salen de analizar tus movimientos (manuales e importados): balance, proyección del periodo, categorías que suben frente al periodo anterior, lugares que repites, fines de semana, suscripciones, comisiones y metas atrasadas. Además gastos hormiga e historial de 6 meses.
 - **Mi cuenta:** modo claro, oscuro o automático, recordatorio mensual para el calendario, respaldo y comentarios.
+- **Descuentos de ley (Panamá), opcional:** activándolo en Mi cuenta, al registrar un salario se desglosan Seguro Social (9.75%), Seguro Educativo (1.25%) e impuesto sobre la renta estimado (tabla anual: exento hasta $11,000, 15% hasta $50,000 y 25% sobre el excedente, calculado sobre 13 salarios). Los montos se pueden corregir según el talonario; se guarda como ingreso el neto. También funciona con los ingresos fijos.
 - Aviso en Inicio al final de cada mes para subir el estado de cuenta.
 
 App publicada: `https://yanisgabriela5-cyber.github.io/finglory/`
