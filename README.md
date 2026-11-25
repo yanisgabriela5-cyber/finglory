@@ -6,6 +6,18 @@ FinGlory es una web app para saber en qué se va tu dinero: registra gastos e in
 - El archivo del banco se lee en el propio dispositivo; solo se guardan los movimientos que la persona decide importar.
 - También se puede **probar sin cuenta**: los datos quedan solo en ese navegador.
 
+## Funciones
+
+- **Inicio:** disponible del periodo, en qué se fue el dinero contra el presupuesto y registro rápido con alerta cuando te pasas.
+- **Por mes o por quincena:** cambia entre mes completo, 1ª quincena (días 1–15) y 2ª quincena (16 al final). En quincena el presupuesto es la mitad del mensual.
+- **Movimientos:** búsqueda, filtro y edición (toca un movimiento para cambiar monto, tipo, categoría, descripción o fecha).
+- **Analizar:** lee el Excel o CSV del banco, pregunta lo que no entiende, recuerda tus respuestas y sugiere presupuesto.
+- **Plan:** gastos e ingresos fijos (como la quincena) y reparto del salario por porcentajes.
+- **Metas:** metas con propósito y fecha, aporte sugerido por quincena y lista de deseos con espera.
+- **Hábitos:** tips con alternativas, gastos hormiga e historial de 6 meses.
+- **Mi cuenta:** modo claro, oscuro o automático, recordatorio mensual para el calendario, respaldo y comentarios.
+- Aviso en Inicio al final de cada mes para subir el estado de cuenta.
+
 App publicada: `https://yanisgabriela5-cyber.github.io/finglory/`
 
 ## Archivos

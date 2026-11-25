@@ -9,6 +9,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script>try{var t=localStorage.getItem("fg.theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -17,7 +18,7 @@
    PICTURE: el disponible del mes en una tarjeta morada con la cifra en lima.
    COLOUR and TYPE: blanco #FCFBFB, morado #3E2F59, rosa #DBB0CF, lima #C6ED58; Plus Jakarta Sans.
    LAYOUT: cifra y barras a la izquierda, registro a la derecha; secciones con índice debajo. */
-:root{color-scheme:light dark;--plum:#3E2F59;--pink:#DBB0CF;--lime:#C6ED58;--snow:#FCFBFB;--bg:light-dark(#FCFBFB,#1d1530);--ink:light-dark(#3E2F59,#FCFBFB);--soft:light-dark(#77698f,#c9bcd9);--line:light-dark(#ece3ec,#3a2d55);--card:light-dark(#F6ECF3,#2a2042);--bar:light-dark(#3E2F59,#DBB0CF);--y:var(--lime);--red:light-dark(#c4345a,#ff8aa5);--grow:light-dark(#4d7a0c,#C6ED58);--growbar:light-dark(#8fbf2a,#C6ED58);--amber:light-dark(#b47300,#ffc93d);--focus:light-dark(#3E2F59,#C6ED58);--track:light-dark(#efe4ee,#3a2d55)}
+:root{color-scheme:light dark;--plum:#3E2F59;--pink:#DBB0CF;--lime:#C6ED58;--snow:#FCFBFB;--bg:light-dark(#FCFBFB,#1d1530);--ink:light-dark(#3E2F59,#FCFBFB);--soft:light-dark(#77698f,#c9bcd9);--line:light-dark(#ece3ec,#3a2d55);--card:light-dark(#F6ECF3,#2a2042);--bar:light-dark(#3E2F59,#DBB0CF);--y:var(--lime);--red:light-dark(#c4345a,#ff8aa5);--grow:light-dark(#4d7a0c,#C6ED58);--growbar:light-dark(#8fbf2a,#C6ED58);--amber:light-dark(#b47300,#ffc93d);--focus:light-dark(#3E2F59,#C6ED58);--track:light-dark(#efe4ee,#3a2d55);--sel:light-dark(#3E2F59,#DBB0CF);--onsel:light-dark(#FCFBFB,#2a1f40)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 [hidden]{display:none!important}
@@ -69,7 +70,7 @@ textarea{padding:10px 12px;min-height:110px;resize:vertical}
 .link{border:0;background:none;color:var(--soft);text-decoration:underline;padding:0 4px;min-height:44px}
 .card{background:var(--card);border-radius:24px;padding:22px}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
-.seg{background:var(--bg);border-radius:999px;padding:4px}.seg button{background:transparent;border-color:transparent}.seg button[aria-pressed=true]{background:var(--plum);color:var(--snow);border-color:var(--plum);font-weight:700}
+.seg{background:var(--bg);border-radius:999px;padding:4px}.seg button{background:transparent;border-color:transparent}.seg button[aria-pressed=true]{background:var(--sel);color:var(--onsel);border-color:var(--sel);font-weight:700}
 label{display:block;font-size:14px;font-weight:600;margin:12px 0 5px}
 .amt{font-size:28px!important;font-weight:800;min-height:56px}
 #f .pri{width:100%;margin-top:18px}
@@ -128,10 +129,10 @@ td.m.in{color:var(--grow)}
 .tabs a svg{width:19px;height:19px;flex:none}.tabs .sh{display:none}
 .appbar+section.band,#app>section.band:not([hidden]){padding-top:clamp(28px,4vw,48px)}
 @media(hover:hover){.tabs a:hover{background:var(--card)}}
-.tabs a[aria-current=page]{background:var(--plum);color:var(--snow)}
+.tabs a[aria-current=page]{background:var(--sel);color:var(--onsel)}
 .appbar .mnav{flex:none}.appbar .mnav b{min-width:8.5em;font-size:15px}.appbar .icon{width:38px;min-height:38px}
 .me{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--card);color:var(--ink)}
-.me svg{width:22px;height:22px}.me[aria-current=page]{background:var(--plum);color:var(--snow)}
+.me svg{width:22px;height:22px}.me[aria-current=page]{background:var(--sel);color:var(--onsel)}
 .band+.band{border-top:0}
 section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var(--line)}
 @media(max-width:1100px){.tabs a{padding:9px 11px}.tabs a span{font-size:14px}}
@@ -169,6 +170,20 @@ section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var
   .mlist.fx tr{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"t m x" "s s s";row-gap:8px}
   .mlist.fx .c-t{grid-area:t}.mlist.fx .m{grid-area:m}.mlist.fx .c-x{grid-area:x}.mlist.fx .c-s{grid-area:s}
 }
+.pbar{display:flex;justify-content:center;padding:12px max(4vw,16px) 0}
+.pbar .seg{margin:0;width:100%;max-width:520px;grid-template-columns:1fr 1fr 1fr;background:var(--card)}
+.pbar .seg button{font-size:14px;padding:0 8px}.pbar .sh{display:none}@media(max-width:600px){.pbar .lg{display:none}.pbar .sh{display:inline}.pbar{padding-top:10px}}
+.seg button[aria-pressed=true]{background:var(--sel);color:var(--onsel);border-color:var(--sel);font-weight:700}
+.theme{background:var(--card)}
+.remind{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--lime);color:#3E2F59;border-radius:20px;padding:14px 18px;margin-bottom:20px}
+.remind p{margin:0;flex:1 1 240px;font-weight:600}
+.remind button{background:#3E2F59;color:var(--snow);border-color:#3E2F59}
+.remind .x{background:transparent;color:#3E2F59;border-color:rgba(62,47,89,.3);width:40px;padding:0}
+.mlist tbody tr{cursor:pointer}
+@media(hover:hover){.mlist tbody tr:hover td{background:var(--card)}}
+.mlist tr:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}
+#emodal .box{max-height:calc(100vh - 32px);overflow:auto}
+#emodal label{margin-top:12px}
 .err{color:var(--red);font-size:14px;margin:8px 0 0}
 .status{font-size:13px;color:var(--soft);margin-top:8px}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--plum);color:var(--snow);border-radius:20px;padding:8px 8px 8px 16px;display:none;align-items:center;gap:10px;z-index:8;max-width:calc(100vw - 32px)}
@@ -181,7 +196,7 @@ section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var
 .modal p{margin:0 0 6px}
 .acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
 .acts button{flex:1 1 150px}
-.danger{background:var(--red);color:#fff;border-color:var(--red);font-weight:700}
+.danger{background:var(--red);color:light-dark(#fff,#2a0d18);border-color:var(--red);font-weight:700}
 pre,.scroll{overflow-x:auto}
 @media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--soft)}.stack td:empty{display:none}}
 @media(prefers-reduced-motion:no-preference){.fill,.p i,.hrow .bars div{transition:width .4s ease}}
@@ -208,7 +223,9 @@ pre,.scroll{overflow-x:auto}
   <div class="mnav" id="mnav"><button class="icon" id="prev" aria-label="Mes anterior">‹</button><b id="mlabel"></b><button class="icon" id="next" aria-label="Mes siguiente">›</button></div>
   <a class="me" href="#cuenta" data-view="cuenta" aria-label="Mi cuenta"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
 </header>
+<div class="pbar" id="pbar"><div class="seg per" role="group" aria-label="Periodo"><button type="button" data-per="mes"><span class="lg">Mes completo</span><span class="sh">Mes</span></button><button type="button" data-per="q1">1ª quincena</button><button type="button" data-per="q2">2ª quincena</button></div></div>
 <section class="band" id="resumen" data-v="inicio"><div class="wrap">
+  <div class="remind" id="remind" hidden></div>
   <div class="grid">
     <div>
       <div class="slab">
@@ -270,11 +287,12 @@ pre,.scroll{overflow-x:auto}
 </div></section>
 
 <section class="band" id="fijos" data-v="plan"><div class="wrap">
-  <h2>Gastos fijos</h2>
-  <p class="sub">Lo que pagas todos los meses. Regístralos con un toque cuando los pagues; mientras estén pendientes, se descuentan de tu dinero "libre de verdad".</p>
+  <h2>Gastos e ingresos fijos</h2>
+  <p class="sub">Lo que pagas o cobras todos los meses, como el alquiler o tu quincena. Regístralos con un toque cuando pasen; mientras estén pendientes, se toman en cuenta para tu dinero "libre de verdad".</p>
   <div id="fixedlist" style="margin-top:12px"></div>
   <form class="addf" id="xf">
-    <div><label for="xname">Gasto fijo</label><input id="xname" placeholder="Ej. Plan del celular" required></div>
+    <div><label for="xtype">Tipo</label><select id="xtype"><option value="gasto">Gasto</option><option value="ingreso">Ingreso</option></select></div>
+    <div><label for="xname">Nombre</label><input id="xname" placeholder="Ej. Plan del celular" required></div>
     <div><label for="xamt">Monto</label><input id="xamt" inputmode="decimal" placeholder="0.00" required></div>
     <div><label for="xcat">Categoría</label><select id="xcat"></select></div>
     <div><label for="xday">Día de pago</label><input id="xday" type="number" min="1" max="31" value="15"></div>
@@ -354,6 +372,11 @@ pre,.scroll{overflow-x:auto}
       <p class="sub">Sirve para reconocer las transferencias entre tus propias cuentas y no contarlas como gastos o ingresos.</p>
       <div class="acts"><button id="savebank">Guardar</button><button id="exportb">Descargar respaldo</button><label class="btnlike" for="importfile" style="margin:0">Restaurar respaldo<input type="file" id="importfile" accept=".json" hidden></label><button id="logout">Cerrar sesión</button></div>
       <p class="status" id="acstatus"></p>
+      <label style="margin-top:22px">Apariencia</label>
+      <div class="seg theme" role="group" aria-label="Apariencia" style="max-width:420px;grid-template-columns:1fr 1fr 1fr"><button type="button" data-theme-set="auto">Automático</button><button type="button" data-theme-set="light">Claro</button><button type="button" data-theme-set="dark">Oscuro</button></div>
+      <label style="margin-top:18px">Recordatorio mensual</label>
+      <p class="sub" style="margin-top:0">Agrega a tu calendario un aviso el último día de cada mes para subir tu estado de cuenta.</p>
+      <div class="acts" style="margin-top:8px"><button id="icsb">Agregar al calendario</button></div>
     </div>
     <form class="card" id="fb">
       <h3>Enviar comentarios</h3>
@@ -365,6 +388,16 @@ pre,.scroll{overflow-x:auto}
   </div>
 </div></section>
 
+<div class="modal" id="emodal" role="dialog" aria-modal="true" aria-labelledby="etitle"><form class="box" id="ef">
+  <h3 id="etitle">Editar movimiento</h3>
+  <div class="seg" role="group" aria-label="Tipo" id="etype"><button type="button" data-et="gasto">Gasto</button><button type="button" data-et="ingreso">Ingreso</button></div>
+  <label for="eamt">Monto</label><input id="eamt" class="amt" inputmode="decimal" required autocomplete="off">
+  <div id="ecatw"><label for="ecat">Categoría</label><select id="ecat"></select></div>
+  <label for="edesc">Descripción</label><input id="edesc" autocomplete="off">
+  <label for="edate">Fecha</label><input id="edate" type="date" required>
+  <p class="err" id="eerr" role="alert"></p>
+  <div class="acts"><button class="pri" type="submit">Guardar cambios</button><button type="button" id="ecancel">Cancelar</button><button type="button" class="danger" id="edel">Eliminar</button></div>
+</form></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="box">
   <h3 id="mtitle"></h3>
   <p id="mbody"></p>
@@ -380,7 +413,7 @@ pre,.scroll{overflow-x:auto}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="config.js?v=9"></script>
-<script src="app.js?v=9"></script>
+<script src="config.js?v=11"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>
