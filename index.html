@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FinGlory</title>
+<meta name="theme-color" content="#3E2F59">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: cercana y optimista, como una amiga que sabe de finanzas.
+   IDEA: tarjetas redondeadas y píldoras, como una app moderna de bolsillo.
+   PICTURE: el disponible del mes en una tarjeta morada con la cifra en lima.
+   COLOUR and TYPE: blanco #FCFBFB, morado #3E2F59, rosa #DBB0CF, lima #C6ED58; Plus Jakarta Sans.
+   LAYOUT: cifra y barras a la izquierda, registro a la derecha; secciones con índice debajo. */
+:root{color-scheme:light dark;--plum:#3E2F59;--pink:#DBB0CF;--lime:#C6ED58;--snow:#FCFBFB;--bg:light-dark(#FCFBFB,#1d1530);--ink:light-dark(#3E2F59,#FCFBFB);--soft:light-dark(#77698f,#c9bcd9);--line:light-dark(#ece3ec,#3a2d55);--card:light-dark(#F6ECF3,#2a2042);--bar:light-dark(#3E2F59,#DBB0CF);--y:var(--lime);--red:light-dark(#c4345a,#ff8aa5);--grow:light-dark(#4d7a0c,#C6ED58);--growbar:light-dark(#8fbf2a,#C6ED58);--amber:light-dark(#b47300,#ffc93d);--focus:light-dark(#3E2F59,#C6ED58);--track:light-dark(#efe4ee,#3a2d55)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 'Plus Jakarta Sans',system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(24px,4vw,48px) max(5vw,16px)}
+.band+.band{border-top:1px solid var(--line)}
+.wrap{max-width:1240px;margin:0 auto}
+h1,h2,h3{line-height:1.08;text-wrap:balance;margin:0;font-weight:800;letter-spacing:-.02em}
+h1{font-size:clamp(32px,5vw,44px)}h2{font-size:26px;margin-bottom:6px}h3{font-size:18px}
+html{scroll-padding-top:72px;scroll-behavior:smooth}
+.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between;margin-bottom:20px}
+.mnav{display:flex;align-items:center;gap:6px}
+.mnav b{min-width:9.5em;text-align:center;font-size:17px}
+nav.scroll{display:flex;gap:6px;overflow-x:auto;padding:10px max(5vw,16px);border-bottom:1px solid var(--line);background:var(--bg)}
+nav.scroll a{flex:none;color:var(--ink);text-decoration:none;font-size:15px;font-weight:600;padding:9px 14px;border-radius:999px;background:var(--card);border:1px solid transparent}
+nav.scroll a:hover{border-color:var(--pink)}
+@media(min-width:900px){nav.scroll{position:sticky;top:0;z-index:4}}
+button,input,select,textarea{font:inherit;font-size:16px;color:inherit}
+button{cursor:pointer;border:1.5px solid var(--line);background:var(--bg);border-radius:999px;min-height:44px;padding:0 18px;font-weight:600}
+button:hover{border-color:var(--pink)}button:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.icon{width:44px;padding:0;font-size:22px;border-radius:14px;background:var(--pink);border-color:var(--pink);color:#3E2F59}
+.pri{background:var(--lime);color:#3E2F59;border-color:var(--lime);font-weight:700}
+.pri:hover{border-color:#3E2F59}
+input,select,textarea{min-height:44px;border:1.5px solid var(--line);border-radius:14px;padding:0 14px;background:var(--bg);width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--pink)}
+textarea{padding:10px 12px;min-height:110px;resize:vertical}
+.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:32px}
+@media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.slab{background:var(--plum);color:var(--snow);border-radius:28px;padding:28px 30px;display:flex;flex-wrap:wrap;gap:16px 40px;align-items:flex-end}
+.slab .k{font-size:15px;font-weight:600;color:var(--pink)}
+.big{font-size:clamp(40px,7vw,64px);font-weight:800;line-height:1;white-space:nowrap;color:var(--lime);letter-spacing:-.03em}
+.mini{display:flex;flex-wrap:wrap;gap:8px 28px}
+.mini div{font-size:15px;color:var(--pink)}.mini strong{color:var(--snow)}.mini strong{display:block;font-size:20px;white-space:nowrap}
+.free{flex-basis:100%;font-size:15px;border-top:1px solid rgba(252,251,251,.18);padding-top:12px;color:var(--snow)}
+.cats{margin-top:28px}
+.row{display:grid;grid-template-columns:9.5em minmax(0,1fr) auto;gap:12px;align-items:center;padding:7px 0}
+.row .n{font-weight:600;font-size:15px}
+.track{position:relative;height:14px;background:var(--track);border-radius:7px}
+.fill{position:absolute;inset:0 auto 0 0;background:var(--bar);border-radius:7px}
+.fill.over{background:var(--red)}.fill.warn{background:var(--amber)}.fill.g{background:var(--grow)}
+.mark{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--soft)}
+.row .v{font-size:14px;white-space:nowrap;text-align:right;color:var(--soft)}
+.row .v b{color:var(--ink)}
+.o{color:var(--red);font-weight:700}.w{color:var(--amber);font-weight:700}.ok{color:var(--grow);font-weight:700}
+.row input{width:7em;min-height:36px;text-align:right}
+.sub{color:var(--soft);font-size:15px;margin:4px 0 0;max-width:70ch}
+.head2{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
+.link{border:0;background:none;color:var(--soft);text-decoration:underline;padding:0 4px;min-height:44px}
+.card{background:var(--card);border-radius:24px;padding:22px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
+.seg{background:var(--bg);border-radius:999px;padding:4px}.seg button{background:transparent;border-color:transparent}.seg button[aria-pressed=true]{background:var(--plum);color:var(--snow);border-color:var(--plum);font-weight:700}
+label{display:block;font-size:14px;font-weight:600;margin:12px 0 5px}
+.amt{font-size:28px!important;font-weight:800;min-height:56px}
+#f .pri{width:100%;margin-top:18px}
+.tools{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.tools input{flex:1 1 220px;width:auto}.tools select{flex:0 1 200px;width:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:13px;color:var(--soft);font-weight:600;padding:8px 6px;border-bottom:1px solid var(--line)}
+td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.m{text-align:right;white-space:nowrap;font-weight:700}
+td.m.in{color:var(--grow)}
+.x{min-height:36px;padding:0 10px;font-size:14px}
+.empty{color:var(--soft);padding:16px 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:16px}
+.p{height:12px;background:var(--track);border-radius:6px;margin:12px 0 8px;overflow:hidden}
+.p i{display:block;height:100%;background:var(--growbar);border-radius:6px}
+.line{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.line input,.line select{flex:1 1 120px;width:auto;min-height:40px}
+.why{font-style:italic;color:var(--soft);margin:2px 0 0;font-size:15px}
+.alt{background:var(--card);border-radius:16px;padding:10px 12px;margin-top:10px;font-size:15px}.alt ul{margin:6px 0 0;padding-left:18px}.alt li{margin:4px 0}
+.plan{background:var(--bg);border-radius:16px;padding:10px 12px;margin-top:10px;font-size:15px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.addf{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:16px;align-items:end}
+.addf label{margin:0 0 4px}
+.split{display:grid;grid-template-columns:minmax(0,1fr) 6em 8em auto;gap:8px 12px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.split input{min-height:40px}.split .pct{text-align:right}
+@media(max-width:520px){.split{grid-template-columns:minmax(0,1fr) 5em}.split .m{grid-column:1}.row{grid-template-columns:7em minmax(0,1fr)}.row .v{grid-column:1/-1;text-align:left}}
+.stat{font-size:clamp(28px,4vw,40px);font-weight:800;line-height:1.1;white-space:nowrap}
+.hist{display:grid;gap:10px;margin-top:16px}
+.hrow{display:grid;grid-template-columns:4.5em minmax(0,1fr) 8.5em;gap:12px;align-items:center}
+.hrow .bars{display:grid;gap:4px}.hrow .bars div{height:10px;border-radius:5px}
+.hrow .nb{font-size:14px;text-align:right;white-space:nowrap}
+.legend{display:flex;gap:16px;font-size:14px;color:var(--soft);margin-top:8px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px}
+.drop{border:2px dashed var(--pink);border-radius:22px;padding:20px;text-align:center}
+.drop.on{border-color:var(--plum);background:var(--card)}
+.res h3{margin-top:18px}
+.res ul{padding-left:20px;margin:8px 0}.res li{margin:6px 0}
+.btnlike{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border:1.5px solid var(--line);background:var(--bg);border-radius:999px;font-weight:600!important;min-height:44px;padding:0 14px;font-weight:400;font-size:16px;flex:1 1 150px}.btnlike:hover{border-color:var(--pink)}
+#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:var(--plum)}
+#auth .link{color:var(--pink)}#auth .card{background:var(--bg)}#auth .card .link{color:var(--soft)}
+#auth .box{max-width:420px;width:100%}
+#auth .slab{display:block;margin-bottom:20px;padding:0 4px;background:none}
+#auth .slab span{color:var(--pink);font-size:18px}
+.hero{font-size:clamp(40px,9vw,60px);font-weight:800;line-height:1;letter-spacing:-.03em;color:var(--snow);margin:14px 0 10px}.hero em{font-style:normal;color:var(--pink)}
+#auth .slab b{font-size:22px;line-height:1;display:flex;align-items:center;gap:10px;color:var(--lime)}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;flex:none}#auth .logo{width:36px;height:36px}
+.err{color:var(--red);font-size:14px;margin:8px 0 0}
+.status{font-size:13px;color:var(--soft);margin-top:8px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--plum);color:var(--snow);border-radius:20px;padding:8px 8px 8px 16px;display:none;align-items:center;gap:10px;z-index:8;max-width:calc(100vw - 32px)}
+.toast button{background:transparent;color:var(--lime);border:0;font-weight:700}
+.toast.on{display:flex}
+.modal{position:fixed;inset:0;background:rgba(30,22,45,.6);display:none;align-items:center;justify-content:center;padding:16px;z-index:9}
+.modal.on{display:flex}
+.modal .box{background:var(--bg);color:var(--ink);border-radius:28px;padding:26px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal h3{margin:0 0 8px;font-size:22px}
+.modal p{margin:0 0 6px}
+.acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.acts button{flex:1 1 150px}
+.danger{background:var(--red);color:#fff;border-color:var(--red);font-weight:700}
+pre,.scroll{overflow-x:auto}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--soft)}.stack td:empty{display:none}}
+@media(prefers-reduced-motion:no-preference){.fill,.p i,.hrow .bars div{transition:width .4s ease}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div id="auth" hidden><div class="box">
+  <div class="slab"><b><svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#C6ED58"/><rect x="9" y="22" width="5" height="9" rx="2" fill="#3E2F59"/><rect x="17.5" y="16" width="5" height="15" rx="2" fill="#3E2F59"/><rect x="26" y="11" width="5" height="20" rx="2" fill="#3E2F59"/><circle cx="31" cy="8.5" r="3" fill="#3E2F59"/></svg><span class="appname" style="color:var(--lime);font-size:22px">FinGlory</span></b><p class="hero">Sabe en qué se va tu <em>dinero</em>.</p><span>Y llega a tus metas, una quincena a la vez.</span></div>
+  <form class="card" id="authf">
+    <h2 id="authtitle">Entrar</h2>
+    <label for="aemail">Correo</label><input id="aemail" type="email" autocomplete="email" required placeholder="tucorreo@gmail.com">
+    <div id="pwwrap"><label for="apass">Contraseña</label><input id="apass" type="password" autocomplete="current-password" minlength="8" placeholder="Mínimo 8 caracteres"></div>
+    <button class="pri" type="submit" id="authgo" style="width:100%;margin-top:18px">Entrar</button>
+    <p class="err" id="autherr" role="alert"></p>
+    <div class="acts" style="margin-top:8px"><button type="button" class="link" id="toSignup">Crear cuenta</button><button type="button" class="link" id="toReset">Olvidé mi contraseña</button></div>
+  </form>
+  <div class="acts"><button type="button" class="link" id="demo">Probar sin cuenta (se guarda solo en este dispositivo)</button></div>
+</div></div>
+<div id="app" hidden>
+<section class="band" id="resumen"><div class="wrap">
+  <div class="top">
+    <h1 class="brand"><svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#3E2F59"/><rect x="9" y="22" width="5" height="9" rx="2" fill="#C6ED58"/><rect x="17.5" y="16" width="5" height="15" rx="2" fill="#C6ED58"/><rect x="26" y="11" width="5" height="20" rx="2" fill="#C6ED58"/><circle cx="31" cy="8.5" r="3" fill="#DBB0CF"/></svg><span class="appname">FinGlory</span></h1>
+    <div class="mnav"><button class="icon" id="prev" aria-label="Mes anterior">‹</button><b id="mlabel"></b><button class="icon" id="next" aria-label="Mes siguiente">›</button></div>
+  </div>
+  <div class="grid">
+    <div>
+      <div class="slab">
+        <div><div class="k">Disponible este mes</div><div class="big" id="avail">$0.00</div></div>
+        <div class="mini">
+          <div>Ingresos<strong id="tin">$0.00</strong></div>
+          <div>Gastos<strong id="tout">$0.00</strong></div>
+          <div>A metas<strong id="tsave">$0.00</strong></div>
+        </div>
+        <div class="free" id="free"></div>
+      </div>
+      <div class="cats">
+        <div class="head2"><h2 style="margin:0">¿En qué se fue el dinero?</h2><button class="link" id="editb">Editar presupuestos</button></div>
+        <p class="sub" id="catnote"></p>
+        <div id="bars"></div>
+      </div>
+    </div>
+    <form class="card" id="f">
+      <h2>Registrar</h2>
+      <div class="seg" role="group" aria-label="Tipo"><button type="button" data-t="gasto" aria-pressed="true">Gasto</button><button type="button" data-t="ingreso" aria-pressed="false">Ingreso</button></div>
+      <label for="amt">Monto</label>
+      <input id="amt" class="amt" inputmode="decimal" placeholder="0.00" required autocomplete="off">
+      <label for="cat">Categoría</label>
+      <select id="cat"></select>
+      <label for="desc">Descripción</label>
+      <input id="desc" placeholder="Ej. almuerzo, gasolina, luz" autocomplete="off">
+      <label for="date">Fecha</label>
+      <input id="date" type="date" required>
+      <button class="pri" type="submit">Guardar</button>
+      <p class="status" id="status"></p>
+    </form>
+  </div>
+</div></section>
+
+<nav class="scroll" aria-label="Secciones">
+  <a href="#banco">Analizar mi banco</a><a href="#movimientos">Movimientos</a><a href="#fijos">Gastos fijos</a><a href="#reparto">Reparto del salario</a><a href="#metas">Metas con propósito</a><a href="#deseos">Lista de deseos</a><a href="#hormiga">Gastos hormiga</a><a href="#tips">Tips para ti</a><a href="#historial">Historial</a><a href="#cuenta">Mi cuenta</a>
+</nav>
+
+<section class="band" id="banco"><div class="wrap">
+  <h2>Analizar mi estado de cuenta</h2>
+  <p class="sub">Descarga tus movimientos desde la banca en línea (Excel o CSV con fecha, descripción y monto) y súbelos aquí. La app los clasifica, te pregunta lo que no entiende y te sugiere cómo ajustar el próximo mes. El archivo se lee en tu propio dispositivo.</p>
+  <div class="grid" style="margin-top:16px">
+    <div>
+      <div class="drop" id="drop">
+        <p style="margin:0 0 10px"><b>Arrastra el archivo aquí</b> o elígelo</p>
+        <input type="file" id="file" accept=".csv,.txt,.tsv,.xlsx,.xls" aria-label="Archivo del banco" style="max-width:340px;margin:0 auto;padding-top:8px">
+        <p class="sub" id="fname" style="margin:8px auto 0"></p>
+      </div>
+      <label for="paste">O pega aquí la tabla de movimientos</label>
+      <textarea id="paste" placeholder="Copia la tabla de movimientos de tu banca en línea y pégala aquí"></textarea>
+      <div class="acts"><button class="pri" id="analyze">Analizar</button></div>
+      <p class="status" id="astatus"></p>
+    </div>
+    <div class="card res" id="ares"><p class="empty" style="padding:0">Cuando analices un estado de cuenta, aquí verás en qué se fue tu dinero, mis preguntas y las sugerencias para el próximo mes.</p></div>
+  </div>
+</div></section>
+
+<section class="band" id="movimientos"><div class="wrap">
+  <div class="head2"><h2 style="margin:0">Movimientos del mes</h2><button class="link" id="csv">Copiar como CSV</button></div>
+  <div class="tools"><input id="q" type="search" placeholder="Buscar descripción…" aria-label="Buscar"><select id="fc" aria-label="Filtrar categoría"></select></div>
+  <div id="list"></div>
+</div></section>
+
+<section class="band" id="fijos"><div class="wrap">
+  <h2>Gastos fijos</h2>
+  <p class="sub">Lo que pagas todos los meses. Regístralos con un toque cuando los pagues; mientras estén pendientes, se descuentan de tu dinero "libre de verdad".</p>
+  <div id="fixedlist" style="margin-top:12px"></div>
+  <form class="addf" id="xf">
+    <div><label for="xname">Gasto fijo</label><input id="xname" placeholder="Ej. Plan del celular" required></div>
+    <div><label for="xamt">Monto</label><input id="xamt" inputmode="decimal" placeholder="0.00" required></div>
+    <div><label for="xcat">Categoría</label><select id="xcat"></select></div>
+    <div><label for="xday">Día de pago</label><input id="xday" type="number" min="1" max="31" value="15"></div>
+    <button class="pri" type="submit">Añadir fijo</button>
+  </form>
+</div></section>
+
+<section class="band" id="reparto"><div class="wrap">
+  <h2>Reparto del salario</h2>
+  <p class="sub">Apenas te paguen, separa primero lo importante. Ajusta los porcentajes a tu gusto; deben sumar 100%.</p>
+  <div class="grid" style="margin-top:16px">
+    <div>
+      <div id="splitrows"></div>
+      <div class="line"><input id="sname" placeholder="Nueva parte (ej. Fondo de emergencia)" aria-label="Nombre de la parte"><button id="sadd">Añadir parte</button><button class="pri" id="ssave">Guardar porcentajes</button></div>
+      <p class="status" id="sstatus"></p>
+    </div>
+    <div class="card">
+      <label for="samt" style="margin-top:0">Monto a repartir</label>
+      <input id="samt" class="amt" inputmode="decimal" placeholder="0.00">
+      <p class="sub" id="snote"></p>
+    </div>
+  </div>
+</div></section>
+
+<section class="band" id="metas"><div class="wrap">
+  <h2>Metas con propósito</h2>
+  <p class="sub">Cada meta lleva su "para qué" y, si le pones fecha, cuánto apartar por quincena. Lo que aportas se resta de tu disponible del mes, así ese dinero no se gasta.</p>
+  <div class="cards" id="goals"></div>
+  <form class="addf" id="gf">
+    <div style="grid-column:span 2"><label for="gname">Nueva meta</label><input id="gname" placeholder="Ej. Abono del auto" required></div>
+    <div><label for="gtarget">Monto objetivo</label><input id="gtarget" inputmode="decimal" placeholder="0.00" required></div>
+    <div><label for="gdate">¿Para cuándo?</label><input id="gdate" type="month"></div>
+    <div style="grid-column:1/-1"><label for="gwhy">¿Para qué?</label><input id="gwhy" placeholder="Ej. llegar al nuevo trabajo sin depender del bus"></div>
+    <button class="pri" type="submit">Añadir meta</button>
+  </form>
+  <div class="presets" id="presets"></div>
+</div></section>
+
+<section class="band" id="deseos"><div class="wrap">
+  <h2>Lista de deseos</h2>
+  <p class="sub">Para compras grandes: anótala, espera los días que elijas y luego decide con la cabeza fría. Mientras tanto ves cuánto te alejaría de tus metas.</p>
+  <div class="cards" id="wishes"></div>
+  <form class="addf" id="wf">
+    <div style="grid-column:span 2"><label for="wname">¿Qué quieres comprar?</label><input id="wname" placeholder="Ej. iPhone nuevo" required></div>
+    <div><label for="wprice">Precio</label><input id="wprice" inputmode="decimal" placeholder="0.00" required></div>
+    <div><label for="wwait">Esperar</label><select id="wwait"><option value="3">3 días</option><option value="7" selected>7 días</option><option value="15">15 días</option><option value="30">30 días</option></select></div>
+    <button class="pri" type="submit">Añadir a la lista</button>
+  </form>
+</div></section>
+
+<section class="band" id="hormiga"><div class="wrap">
+  <h2>Gastos hormiga</h2>
+  <p class="sub">Gastos pequeños (menos de $10) que se repiten. Uno solo no parece nada; juntos sí.</p>
+  <div id="ants" style="margin-top:12px"></div>
+</div></section>
+
+<section class="band" id="tips"><div class="wrap">
+  <h2>Tips para ti</h2>
+  <p class="sub">Salen de tus propios gastos del mes: dónde repites, dónde te pasas y qué puedes hacer distinto sin dejar de vivir.</p>
+  <div class="cards" id="tiplist"></div>
+</div></section>
+
+<section class="band" id="historial"><div class="wrap">
+  <h2>Últimos 6 meses</h2>
+  <p class="sub">Cuánto entró y cuánto salió cada mes, para ver si vas mejorando.</p>
+  <div class="legend"><span><i style="background:var(--growbar)"></i>Ingresos</span><span><i style="background:var(--bar)"></i>Gastos</span></div>
+  <div class="hist" id="hist"></div>
+</div></section>
+
+<section class="band" id="cuenta"><div class="wrap">
+  <h2>Mi cuenta</h2>
+  <div class="grid" style="margin-top:12px">
+    <div>
+      <p id="whoami" class="sub" style="margin-top:0"></p>
+      <label for="bankname">Tu nombre como aparece en el banco</label>
+      <input id="bankname" placeholder="Ej. MARIA JOSE PEREZ" autocomplete="off">
+      <p class="sub">Sirve para reconocer las transferencias entre tus propias cuentas y no contarlas como gastos o ingresos.</p>
+      <div class="acts"><button id="savebank">Guardar</button><button id="exportb">Descargar respaldo</button><label class="btnlike" for="importfile" style="margin:0">Restaurar respaldo<input type="file" id="importfile" accept=".json" hidden></label><button id="logout">Cerrar sesión</button></div>
+      <p class="status" id="acstatus"></p>
+    </div>
+    <form class="card" id="fb">
+      <h3>Enviar comentarios</h3>
+      <p class="sub" style="margin-top:4px">¿Qué te gustó, qué no entendiste, qué le falta? Lo lee quien te invitó.</p>
+      <textarea id="fbtext" maxlength="2000" placeholder="Me costó entender…" required style="margin-top:10px"></textarea>
+      <div class="acts"><button class="pri" type="submit">Enviar</button></div>
+      <p class="status" id="fbstatus"></p>
+    </form>
+  </div>
+</div></section>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="box">
+  <h3 id="mtitle"></h3>
+  <p id="mbody"></p>
+  <p class="sub" id="mgoal"></p>
+  <div id="mtips"></div>
+  <div class="acts"><button class="pri" id="mcancel">No lo gasto</button><button class="danger" id="mok">Guardar igual</button></div>
+</div></div>
+<div class="toast" id="toast" role="status"><span id="tmsg"></span><button id="undo">Deshacer</button></div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
