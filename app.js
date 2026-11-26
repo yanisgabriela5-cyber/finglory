@@ -204,17 +204,24 @@ function renderTop(){
   const dpT=dp.reduce((a,d)=>a+Math.min(Number(d.cuota)||0,debtSaldo(d)),0);
   const pg=sumAmt(pend.filter(f=>fType(f)==='gasto'))+dpT,pi=pend.filter(f=>fType(f)==='ingreso').reduce((a,f)=>a+fixedAmt(f),0)+spT;
   const dl=ofPeriod().filter(t=>t.breakdown).reduce((a,t)=>a+brkTotal(t.breakdown),0);
-  $('free').textContent=(dl?`Descuentos de ley: ${money(dl)} · `:'')+(spT?`Salario por recibir: ${money(spT)} · `:'')+(dpT?`Cuotas de deudas por pagar: ${money(dpT)} · `:'')+((S.fixed.length||spT||dpT)?((pg||pi)?[(pg-dpT>0.004)?`Gastos fijos por pagar: ${money(pg-dpT)}`:'',(r2(pi-spT)>0)?`Ingresos fijos por recibir: ${money(pi-spT)}`:'',`Libre de verdad: ${money(T.avail-pg+pi)}`].filter(Boolean).join(' · '):'Todo lo fijo de este periodo ya está registrado.'):'Agrega tus gastos e ingresos fijos (en Plan) para ver cuánto te queda libre de verdad.');
+  const fl=[];if(dl)fl.push(['Descuentos de ley ya aplicados',dl]);if(spT)fl.push([isServ(salSaved())?'Cobros por recibir':'Salario por recibir',spT]);if(r2(pi-spT)>0)fl.push(['Ingresos fijos por recibir',pi-spT]);if(pg-dpT>0.004)fl.push(['Gastos fijos por pagar',-(pg-dpT)]);if(dpT)fl.push(['Cuotas de deudas por pagar',-dpT]);
+  $('free').innerHTML=(S.fixed.length||spT||dpT)?((pg||pi)?'<ul>'+fl.map(([l,v])=>`<li><span>${esc(l)}</span><b>${v<0?'−'+money(-v):money(v)}</b></li>`).join('')+`<li class="tot"><span>Libre de verdad</span><b>${money(T.avail-pg+pi)}</b></li></ul>`:'Todo lo fijo de este periodo ya está registrado.'):'Agrega tus gastos e ingresos fijos (en Plan) para ver cuánto te queda libre de verdad.';
+  renderQZ();
   const cats=editing?GASTOS.slice():GASTOS.filter(c=>T.by[c]||S.budgets[c]);
   const bud=c=>(S.budgets[c]||0)*(editing?1:sc);
   const max=Math.max(1,...cats.map(c=>Math.max(T.by[c]||0,bud(c))));
   $('editb').textContent=editing?'Listo':'Editar presupuestos';
   $('catnote').textContent=editing?'Escribe cuánto quieres gastar AL MES en cada categoría. Deja vacío para no tener límite.':(period==='mes'?'':'Presupuesto de la quincena: la mitad del mensual. ')+'La raya gris marca el presupuesto. Amarillo: ya usaste el 80%. Rojo: te pasaste.';
+  const QS=qTotals(month);
+  $('qleg')&&$('qleg').remove();
+  if(!editing&&period==='mes'&&cats.length)$('bars').insertAdjacentHTML('beforebegin','<div class="qleg" id="qleg"><span><i style="background:var(--bar)"></i>1ª quincena</span><span><i style="background:var(--pink)"></i>2ª quincena</span></div>');
   $('bars').innerHTML=cats.length?cats.sort((a,b)=>(T.by[b]||0)-(T.by[a]||0)).map(c=>{
     const s=T.by[c]||0,b=bud(c),over=b&&s>b,warn=b&&!over&&s>=b*.8;
     const val=editing?`<input data-b="${esc(c)}" inputmode="decimal" value="${S.budgets[c]||''}" placeholder="Sin límite" aria-label="Presupuesto mensual ${esc(c)}">`
       :`<span class="v"><b>${money(s)}</b>${b?` de ${money(b)}`:''}${over?` <span class="o">+${money(s-b)}</span>`:''}${warn?` <span class="w">${Math.round(s/b*100)}%</span>`:''}</span>`;
-    return `<div class="row"><span class="n">${esc(c)}</span><div class="track"><div class="fill${over?' over':warn?' warn':''}" style="width:${Math.min(100,s/max*100)}%"></div>${b?`<div class="mark" style="left:calc(${b/max*100}% - 1px)"></div>`:''}</div>${val}</div>`;
+    const split=!editing&&period==='mes'&&!over&&!warn&&QS.q2.by[c]&&QS.q1.by[c];
+    const fills=split?`<div class="fill q1" style="width:${Math.min(100,QS.q1.by[c]/max*100)}%;border-radius:7px 0 0 7px"></div><div class="fill q2" style="left:${Math.min(100,QS.q1.by[c]/max*100)}%;width:${Math.min(100,QS.q2.by[c]/max*100)}%"></div>`:`<div class="fill${over?' over':warn?' warn':''}" style="width:${Math.min(100,s/max*100)}%"></div>`;
+    return `<div class="row"><span class="n">${esc(c)}</span><div class="track">${fills}${b?`<div class="mark" style="left:calc(${b/max*100}% - 1px)"></div>`:''}</div>${val}</div>`;
   }).join(''):'<p class="empty">Todavía no hay gastos en '+PNAME[period]+'. Registra el primero o analiza tu estado de cuenta, y aquí verás en qué se va tu dinero.</p>';
   renderRemind();
 }
@@ -222,10 +229,15 @@ function renderList(){
   const q=$('q').value.trim().toLowerCase(),fc=$('fc').value;
   const rows=ofPeriod().filter(t=>(!fc||t.cat===fc)&&(!q||String(t.desc||'').toLowerCase().includes(q)||String(t.cat).toLowerCase().includes(q)))
     .sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.id).localeCompare(String(a.id)));
-  $('list').innerHTML=rows.length?`<table class="mlist"><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="m">Monto</th><th></th></tr></thead><tbody>${rows.map(t=>{
-    const d=String(t.date).slice(8,10)+'/'+String(t.date).slice(5,7);
-    return `<tr data-edit="${esc(t.id)}" tabindex="0"><td class="c-d">${esc(d)}</td><td class="c-t"><span class="t1">${esc(t.desc||'—')}</span><span class="t2">${esc(d)} · ${esc(t.cat)}${t.breakdown&&(t.breakdown.css||t.breakdown.se||t.breakdown.isr)?' · bruto '+money(t.breakdown.bruto):''}</span></td><td class="c-c">${esc(t.cat)}</td><td class="m${t.type==='ingreso'?' in':''}">${t.type==='ingreso'?'+':'-'}${money(t.amount)}</td><td class="c-x"><button class="x" data-del="${esc(t.id)}" aria-label="Eliminar ${esc(t.desc||'movimiento')}"><span class="lg">Eliminar</span><span class="sh" aria-hidden="true">✕</span></button></td></tr>`}).join('')}</tbody></table>`
-    :`<p class="empty">${q||fc?'Nada coincide con la búsqueda.':'No hay movimientos en '+esc(period==='mes'?ymLabel(month):PNAME[period]+' de '+ymLabel(month))+'.'}</p>`;
+  if(!rows.length){$('list').innerHTML=`<p class="empty">${q||fc?'Nada coincide con la búsqueda.':'No hay movimientos en '+esc(period==='mes'?ymLabel(month):PNAME[period]+' de '+ymLabel(month))+'.'}</p>`;return}
+  const tr=t=>{const d=String(t.date).slice(8,10)+'/'+String(t.date).slice(5,7);
+    return `<tr data-edit="${esc(t.id)}" tabindex="0"><td class="c-d">${esc(d)}</td><td class="c-t"><span class="t1">${esc(t.desc||'—')}</span><span class="t2">${esc(t.cat)}${t.breakdown&&(t.breakdown.css||t.breakdown.se||t.breakdown.isr)?' · bruto '+money(t.breakdown.bruto):''}</span></td><td class="c-c">${esc(t.cat)}</td><td class="m${t.type==='ingreso'?' in':''}">${t.type==='ingreso'?'+':'-'}${money(t.amount)}</td><td class="c-x"><button class="x" data-del="${esc(t.id)}" aria-label="Eliminar ${esc(t.desc||'movimiento')}"><span class="lg">Eliminar</span><span class="sh" aria-hidden="true">✕</span></button></td></tr>`};
+  const groups=[];for(const t of rows){const g=Number(String(t.date).slice(8,10))<=15?'q1':'q2';let G=groups[groups.length-1];if(!G||G.q!==g){G={q:g,rows:[]};groups.push(G)}G.rows.push(t)}
+  const body=groups.map(G=>{const inc=sumAmt(G.rows.filter(t=>t.type==='ingreso')),out=sumAmt(G.rows.filter(t=>t.type!=='ingreso'&&t.type!=='ahorro')),sav=sumAmt(G.rows.filter(t=>t.type==='ahorro')),left=inc-out-sav;
+    let html=`<tbody><tr class="grp"><th colspan="5"><div class="grpbox"><b>${G.q==='q1'?'1ª':'2ª'} quincena · ${qRange(G.q,month)}</b><span>Entró <span class="gi">+${money(inc)}</span></span><span>Salió −${money(out+sav)}</span><span class="gq">Queda ${left<0?'−'+money(-left):money(left)}</span></div></th></tr>`,last='';
+    for(const t of G.rows){const ds=String(t.date).slice(0,10);if(ds!==last){html+=`<tr class="day"><td colspan="5">${esc(dayLabel(ds))}</td></tr>`;last=ds}html+=tr(t)}
+    return html+'</tbody>'}).join('');
+  $('list').innerHTML=`<table class="mlist"><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="m">Monto</th><th></th></tr></thead>${body}</table>`;
 }
 function renderFixed(){
   if(!S.fixed.length){$('fixedlist').innerHTML='<p class="empty">Aún no tienes nada fijo. Ejemplos: tu quincena, alquiler, plan del celular, internet, universidad, suscripciones.</p>';return}
@@ -845,6 +857,25 @@ function showAuth(m){authMode=m||'login';$('app').hidden=true;$('auth').hidden=f
   $('demo').hidden=authMode==='newpass';
   if(!sb&&!fauth){$('autherr').textContent='La app aún no está conectada a su base de datos. Puedes probarla sin cuenta.'}
 }
+
+// ============ quincenas ============
+function qTotals(ym){const r={q1:{inc:0,out:0,sav:0,by:{},n:0},q2:{inc:0,out:0,sav:0,by:{},n:0}};
+  for(const t of ofMonth(ym)){const q=Number(String(t.date).slice(8,10))<=15?r.q1:r.q2,a=Number(t.amount)||0;q.n++;
+    if(t.type==='ingreso')q.inc+=a;else if(t.type==='ahorro')q.sav+=a;else{q.out+=a;q.by[t.cat]=(q.by[t.cat]||0)+a}}
+  return r}
+const lastDay=ym=>new Date(Number(ym.slice(0,4)),Number(ym.slice(5)),0).getDate();
+const MES3=ym=>MESES[Number(ym.slice(5))-1].slice(0,3);
+function qRange(q,ym){return q==='q1'?`1–15 ${MES3(ym)}`:`16–${lastDay(ym)} ${MES3(ym)}`}
+function renderQZ(){
+  const R=qTotals(month),isNow=month===today().slice(0,7),nowQ=Number(today().slice(8))<=15?'q1':'q2';
+  const card=q=>{const x=R[q],left=x.inc-x.out-x.sav;
+    return `<button type="button" class="qc" data-qz="${q}" aria-pressed="${period===q}"><div class="qt"><span>${q==='q1'?'1ª':'2ª'} quincena</span><small>${qRange(q,month)}${isNow&&q===nowQ?'<span class="qnow">Ahora</span>':''}</small></div>
+      <dl><dt>Entró</dt><dd>${money(x.inc)}</dd><dt>Gastaste</dt><dd>${money(x.out)}</dd>${x.sav?`<dt>A metas</dt><dd>${money(x.sav)}</dd>`:''}<dt class="left">Te quedó</dt><dd class="left ${left<0?'o':''}">${left<0?'−'+money(-left):money(left)}</dd></dl></button>`};
+  $('qz').innerHTML=`<div class="qzh"><h3>Tus quincenas</h3><button type="button" class="link" data-qz="mes"${period==='mes'?' hidden':''}>Ver el mes completo</button></div><div class="qzg">${card('q1')}${card('q2')}</div>`;
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-qz]');if(!b)return;const q=b.dataset.qz===period&&b.dataset.qz!=='mes'?'mes':b.dataset.qz;const pb=document.querySelector(`[data-per="${q}"]`);if(pb)pb.click()});
+const DOW=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const dayLabel=s=>{const d=new Date(s+'T12:00:00');return s===today()?'Hoy':DOW[d.getDay()]+' '+d.getDate()};
 
 // ============ accesos rápidos ============
 function goRegister(t){
