@@ -229,6 +229,7 @@ section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var
 @media(max-width:520px){.radd{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.radd #rdesc{grid-column:1/-1}.radd #rdate{grid-column:auto}}
 #rlist .payrow{font-size:14px}
 .mlist .c-x{white-space:nowrap}.mlist .c-x .x+.x{margin-inline-start:6px}
+.carry{font-size:13px;color:var(--pink);margin-top:2px;max-width:28em}
 .remind{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--lime);color:#3E2F59;border-radius:20px;padding:14px 18px;margin-bottom:20px}
 .remind p{margin:0;flex:1 1 240px;font-weight:600}
 .remind button{background:#3E2F59;color:var(--snow);border-color:#3E2F59}
@@ -318,7 +319,7 @@ pre,.scroll{overflow-x:auto}
   <div class="grid">
     <div>
       <div class="slab">
-        <div><div class="k">Disponible este mes</div><div class="big" id="avail">$0.00</div></div>
+        <div><div class="k">Disponible este mes</div><div class="big" id="avail">$0.00</div><div class="carry" id="carry" hidden></div></div>
         <div class="mini">
           <div>Ingresos<strong id="tin">$0.00</strong></div>
           <div>Gastos<strong id="tout">$0.00</strong></div>
@@ -588,7 +589,7 @@ pre,.scroll{overflow-x:auto}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="config.js?v=23"></script>
-<script src="app.js?v=23"></script>
+<script src="config.js?v=24"></script>
+<script src="app.js?v=24"></script>
 </body>
 </html>

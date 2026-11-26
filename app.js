@@ -87,9 +87,17 @@ const ofMonth=ym=>S.tx.filter(t=>String(t.date||'').slice(0,7)===ym);
 const dayIn=d=>period==='mes'||(period==='q1'?d<=15:d>=16);
 const ofPeriod=()=>ofMonth(month).filter(t=>dayIn(Number(String(t.date).slice(8,10))));
 const pScale=()=>period==='mes'?1:.5;
+// saldo acumulado: lo que traías al empezar el mes (según tu último cuadre con el banco) + lo de la 1ª quincena si estás en la 2ª
+function monthStart(ym,d){d=d||0;const bs=(S.settings&&S.settings.bankStart)||{};
+  if(bs[ym]!=null&&isFinite(Number(bs[ym])))return Number(bs[ym]);
+  if(d>36||!Object.keys(bs).some(k=>k<ym&&bs[k]!=null))return 0;
+  const p=ymAdd(ym,-1),T=totals(p);return r2(monthStart(p,d+1)+T.inc-T.out-T.sav)}
+function qNet(ym,q){let n=0;for(const t of ofMonth(ym)){const dd=Number(String(t.date).slice(8,10));if((q==='q1')!==(dd<=15))continue;const a=Number(t.amount)||0;n+=t.type==='ingreso'?a:-a}return n}
+const carryFor=(ym,p)=>r2(monthStart(ym)+(p==='q2'?qNet(ym,'q1'):0));
 function totalsP(){let inc=0,out=0,sav=0;const by={};
   for(const t of ofPeriod()){const a=Number(t.amount)||0;if(t.type==='ingreso')inc+=a;else if(t.type==='ahorro')sav+=a;else{out+=a;by[t.cat]=(by[t.cat]||0)+a}}
-  return{inc,out,sav,by,avail:inc-out-sav}}
+  const carry=carryFor(month,period);
+  return{inc,out,sav,by,carry,avail:r2(carry+inc-out-sav)}}
 function totals(ym){
   let inc=0,out=0,sav=0;const by={};
   for(const t of ofMonth(ym)){const a=Number(t.amount)||0;
@@ -197,7 +205,7 @@ function render(){
 function renderTop(){
   const T=totalsP(),sc=pScale();
   document.querySelector('#resumen .slab .k').textContent='Disponible en '+PNAME[period];
-  $('avail').textContent=money(T.avail);$('tin').textContent=money(T.inc);$('tout').textContent=money(T.out);$('tsave').textContent=money(T.sav);
+  $('avail').textContent=(T.avail<0?'−':'')+money(Math.abs(T.avail));$('carry').hidden=!T.carry;$('carry').textContent=T.carry?(T.carry>0?'Incluye ':'Incluye −')+money(Math.abs(T.carry))+(period==='q2'?' que te quedaron de antes (inicio del mes y 1ª quincena)':' que traías al empezar el mes'):'';$('tin').textContent=money(T.inc);$('tout').textContent=money(T.out);$('tsave').textContent=money(T.sav);
   const pend=fixedPending(month).filter(f=>dayIn(Number(f.day)||1));
   const sp=salPayments(month).filter(p=>!p.done&&dayIn(p.day)),spT=sumAmt(sp.map(p=>p.tx));
   const dp=debtsActive().filter(d=>!d.directo&&dayIn(Number(d.day)||1)&&!S.tx.some(t=>t.debt===d.id&&String(t.date).slice(0,7)===month&&dayIn(Number(String(t.date).slice(8)))));
@@ -233,8 +241,8 @@ function renderList(){
   const tr=t=>{const d=String(t.date).slice(8,10)+'/'+String(t.date).slice(5,7);
     return `<tr data-edit="${esc(t.id)}" tabindex="0"><td class="c-d">${esc(d)}</td><td class="c-t"><span class="t1">${esc(t.desc||'—')}</span><span class="t2">${esc(t.cat)}${t.breakdown&&(t.breakdown.css||t.breakdown.se||t.breakdown.isr)?' · bruto '+money(t.breakdown.bruto):''}</span></td><td class="c-c">${esc(t.cat)}</td><td class="m${t.type==='ingreso'?' in':''}">${t.type==='ingreso'?'+':'-'}${money(t.amount)}</td><td class="c-x"><button class="x" data-editbtn="${esc(t.id)}" aria-label="Editar ${esc(t.desc||'movimiento')}"><span class="lg">Editar</span><span class="sh" aria-hidden="true">✎</span></button><button class="x" data-del="${esc(t.id)}" aria-label="Eliminar ${esc(t.desc||'movimiento')}"><span class="lg">Eliminar</span><span class="sh" aria-hidden="true">✕</span></button></td></tr>`};
   const groups=[];for(const t of rows){const g=Number(String(t.date).slice(8,10))<=15?'q1':'q2';let G=groups[groups.length-1];if(!G||G.q!==g){G={q:g,rows:[]};groups.push(G)}G.rows.push(t)}
-  const body=groups.map(G=>{const inc=sumAmt(G.rows.filter(t=>t.type==='ingreso')),out=sumAmt(G.rows.filter(t=>t.type!=='ingreso'&&t.type!=='ahorro')),sav=sumAmt(G.rows.filter(t=>t.type==='ahorro')),left=inc-out-sav;
-    let html=`<tbody><tr class="grp"><th colspan="5"><div class="grpbox"><b>${G.q==='q1'?'1ª':'2ª'} quincena · ${qRange(G.q,month)}</b><span>Entró <span class="gi">+${money(inc)}</span></span><span>Salió −${money(out+sav)}</span><span class="gq">Queda ${left<0?'−'+money(-left):money(left)}</span></div></th></tr>`,last='';
+  const fullG=!q&&!fc;const body=groups.map(G=>{const inc=sumAmt(G.rows.filter(t=>t.type==='ingreso')),out=sumAmt(G.rows.filter(t=>t.type!=='ingreso'&&t.type!=='ahorro')),sav=sumAmt(G.rows.filter(t=>t.type==='ahorro')),cr=fullG?carryFor(month,G.q):0,left=r2(cr+inc-out-sav);
+    let html=`<tbody><tr class="grp"><th colspan="5"><div class="grpbox"><b>${G.q==='q1'?'1ª':'2ª'} quincena · ${qRange(G.q,month)}</b>${cr?`<span>Traías ${cr<0?'−':''}${money(Math.abs(cr))}</span>`:''}<span>Entró <span class="gi">+${money(inc)}</span></span><span>Salió −${money(out+sav)}</span><span class="gq">${fullG?'Queda':'Neto'} ${left<0?'−'+money(-left):money(left)}</span></div></th></tr>`,last='';
     for(const t of G.rows){const ds=String(t.date).slice(0,10);if(ds!==last){html+=`<tr class="day"><td colspan="5">${esc(dayLabel(ds))}</td></tr>`;last=ds}html+=tr(t)}
     return html+'</tbody>'}).join('');
   $('list').innerHTML=`<table class="mlist"><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="m">Monto</th><th></th></tr></thead>${body}</table>`;
@@ -868,9 +876,9 @@ const MES3=ym=>MESES[Number(ym.slice(5))-1].slice(0,3);
 function qRange(q,ym){return q==='q1'?`1–15 ${MES3(ym)}`:`16–${lastDay(ym)} ${MES3(ym)}`}
 function renderQZ(){
   const R=qTotals(month),isNow=month===today().slice(0,7),nowQ=Number(today().slice(8))<=15?'q1':'q2';
-  const card=q=>{const x=R[q],left=x.inc-x.out-x.sav;
+  const card=q=>{const x=R[q],cr=carryFor(month,q),left=r2(cr+x.inc-x.out-x.sav);
     return `<button type="button" class="qc" data-qz="${q}" aria-pressed="${period===q}"><div class="qt"><span>${q==='q1'?'1ª':'2ª'} quincena</span><small>${qRange(q,month)}${isNow&&q===nowQ?'<span class="qnow">Ahora</span>':''}</small></div>
-      <dl><dt>Entró</dt><dd>${money(x.inc)}</dd><dt>Gastaste</dt><dd>${money(x.out)}</dd>${x.sav?`<dt>A metas</dt><dd>${money(x.sav)}</dd>`:''}<dt class="left">Te quedó</dt><dd class="left ${left<0?'o':''}">${left<0?'−'+money(-left):money(left)}</dd></dl></button>`};
+      <dl>${cr?`<dt>Traías</dt><dd>${cr<0?'−':''}${money(Math.abs(cr))}</dd>`:''}<dt>Entró</dt><dd>${money(x.inc)}</dd><dt>Gastaste</dt><dd>${money(x.out)}</dd>${x.sav?`<dt>A metas</dt><dd>${money(x.sav)}</dd>`:''}<dt class="left">Te quedó</dt><dd class="left ${left<0?'o':''}">${left<0?'−'+money(-left):money(left)}</dd></dl></button>`};
   $('qz').innerHTML=`<div class="qzh"><h3>Tus quincenas</h3><button type="button" class="link" data-qz="mes"${period==='mes'?' hidden':''}>Ver el mes completo</button></div><div class="qzg">${card('q1')}${card('q2')}</div>`;
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-qz]');if(!b)return;const q=b.dataset.qz===period&&b.dataset.qz!=='mes'?'mes':b.dataset.qz;const pb=document.querySelector(`[data-per="${q}"]`);if(pb)pb.click()});
@@ -945,7 +953,7 @@ const TOURS={
   {t:'¡Bienvenida a FinGlory!',d:'Te muestro en un minuto cómo usarla. Puedes omitir cuando quieras y volver a verlo desde Mi cuenta.'},
   {sel:'#qa',t:'Empieza aquí',d:'Toca “Anotar gasto” cada vez que pagues algo, aunque sea pequeño. “Anotar ingreso” para el dinero que recibes, y “Mi salario” para configurar tu quincena con sus descuentos.'},
   {sel:'#f',t:'Registra en segundos',d:'Escribe el monto, elige la categoría y toca Guardar. Si un gasto te saca del presupuesto, te aviso y te doy alternativas.'},
-  {sel:'#resumen .slab',t:'Tu dinero de un vistazo',d:'“Disponible” es lo que te queda en el periodo. Abajo te digo cuánto te queda libre de verdad después de tus pagos fijos y deudas.'},
+  {sel:'#resumen .slab',t:'Tu dinero de un vistazo',d:'“Disponible” es tu saldo acumulado: lo que traías más lo que entró menos lo que gastaste. Si cuadras con tu banco, aquí verás lo mismo que tienes en tu cuenta. Abajo te digo cuánto te queda libre después de tus pagos fijos y deudas.'},
   {sel:'#bankline',t:'Cuadra con tu banco',d:'Si lo que ves no coincide con tu cuenta, toca aquí: escribes cuánto tienes de verdad, te digo cuánto falta por anotar y lo agregas en un momento.'},
   {sel:'#pbar',t:'Mes o quincena',d:'Cambia entre el mes completo y cada quincena: todo se recalcula para ese periodo.'},
   {sel:'#resumen .cats',t:'¿En qué se fue el dinero?',d:'Una barra por categoría. Toca “Editar presupuestos” para ponerle un límite a cada una.'},
