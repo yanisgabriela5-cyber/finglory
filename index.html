@@ -205,7 +205,7 @@ section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var
 .qz .qzh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}.qz .qzh h3{margin:0;font-size:18px}
 .qz .qzg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .qz button.qc{display:block;text-align:start;width:100%;min-height:0;border-radius:20px;padding:14px 16px;background:var(--card);border:2px solid transparent;color:var(--ink);font-weight:400}
-.qz button.qc[aria-pressed=true]{border-color:var(--plum)}:root[data-theme=dark] .qz button.qc[aria-pressed=true]{border-color:var(--lime)}
+.qz button.qc[aria-pressed=true]{border-color:var(--sel)}:root[data-theme=dark] .qz button.qc[aria-pressed=true]{border-color:var(--lime)}
 .qz .qt{display:flex;flex-direction:column;gap:0;font-weight:700;margin-bottom:8px}.qz .qt small{font-weight:400;color:var(--soft);font-size:13px}
 .qz dl{margin:0;display:grid;grid-template-columns:auto auto;gap:3px 0;font-size:14px}.qz dt{color:var(--soft)}.qz dd{margin:0;text-align:end;font-variant-numeric:tabular-nums}
 .qz dd.left{font-weight:700;font-size:16px}.qz dt.left{color:var(--ink);font-weight:700;padding-top:4px;border-top:1px solid var(--line)}.qz dd.left{padding-top:4px;border-top:1px solid var(--line)}
@@ -230,6 +230,32 @@ section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var
 #rlist .payrow{font-size:14px}
 .mlist .c-x{white-space:nowrap}.mlist .c-x .x+.x{margin-inline-start:6px}
 .carry{font-size:13px;color:var(--pink);margin-top:2px;max-width:28em}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:6px 14px 6px 8px;border-radius:999px;background:var(--bg);color:var(--ink);border:1.5px solid var(--line);font-weight:600;font-size:14px}
+.chips button .ci{width:28px;height:28px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;flex:none}.chips button .ci svg{width:16px;height:16px}
+.chips button[aria-checked=true]{background:var(--sel);color:var(--onsel);border-color:var(--sel)}.chips button[aria-checked=true] .ci{background:var(--lime);color:#3E2F59}
+.chips button.more{padding:6px 14px;border-style:dashed;color:var(--soft)}
+.dchips{display:flex;gap:8px;flex-wrap:wrap}.dchips button{min-height:42px;padding:6px 16px;border-radius:999px;background:var(--bg);color:var(--ink);border:1.5px solid var(--line);font-weight:600}
+.dchips button[aria-checked=true]{background:var(--sel);color:var(--onsel);border-color:var(--sel)}
+#date:not([hidden]){margin-top:8px}
+.fab{position:fixed;right:20px;bottom:24px;z-index:15;display:flex;align-items:center;gap:8px;min-height:56px;padding:0 22px 0 18px;border-radius:999px;background:var(--plum);color:var(--snow);border:0;font-weight:700;font-size:16px;box-shadow:0 10px 28px rgba(62,47,89,.38)}
+.fab svg{width:22px;height:22px;color:var(--lime)}:root[data-theme=dark] .fab{background:var(--lime);color:#3E2F59}:root[data-theme=dark] .fab svg{color:#3E2F59}
+@media(max-width:980px){.fab{bottom:calc(84px + env(safe-area-inset-bottom));right:16px;padding:0 18px 0 14px;min-height:52px}}
+body.fabhide .fab{display:none}
+body.fnear .fab{opacity:0;pointer-events:none;transform:translateY(12px)}.fab{transition:opacity .2s,transform .2s}
+.paydue{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--lime);color:#3E2F59;border-radius:20px;padding:14px 18px;margin-bottom:18px}
+.paydue p{margin:0;flex:1 1 240px}.paydue .acts{display:flex;gap:8px;flex-wrap:wrap}.paydue button{min-height:42px}.paydue button.pri{background:#3E2F59;color:#FCFBFB;border-color:#3E2F59}.paydue button:not(.pri){background:transparent;color:#3E2F59;border-color:#3E2F59}
+.obox{max-width:520px;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto}
+.obox .ostep{font-size:13px;color:var(--soft);margin:0 0 4px}.obox h3{margin:0 0 6px;font-size:22px}
+.opts{display:grid;gap:10px;margin-top:14px}
+.opts button{display:flex;align-items:center;gap:12px;text-align:start;width:100%;min-height:64px;padding:12px 14px;border-radius:18px;background:var(--card);color:var(--ink);border:2px solid transparent;font-weight:400}
+.opts button b{display:block;font-size:16px}.opts button small{display:block;color:var(--soft);font-size:13px;margin-top:2px}
+.opts button[aria-pressed=true]{border-color:var(--sel)}:root[data-theme=dark] .opts button[aria-pressed=true]{border-color:var(--lime)}
+.opts .oi{flex:none;width:40px;height:40px;border-radius:50%;background:var(--pink);color:#3E2F59;display:flex;align-items:center;justify-content:center}.opts .oi svg{width:20px;height:20px}
+.oacts{display:flex;gap:10px;justify-content:space-between;margin-top:18px;flex-wrap:wrap}.oacts .sp{flex:1}
+.osum{background:var(--card);border-radius:18px;padding:14px 16px;margin-top:12px}.osum .rl{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.onote{font-size:14px;color:var(--soft);margin:8px 0 0}
+.inccard{background:var(--card);border-radius:18px;padding:14px 16px;margin-top:6px}.inccard h3{margin:0 0 4px;font-size:17px}.inccard p{margin:0;color:var(--soft);font-size:14px}.inccard button{margin-top:10px}
 .remind{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--lime);color:#3E2F59;border-radius:20px;padding:14px 18px;margin-bottom:20px}
 .remind p{margin:0;flex:1 1 240px;font-weight:600}
 .remind button{background:#3E2F59;color:var(--snow);border-color:#3E2F59}
@@ -310,6 +336,7 @@ pre,.scroll{overflow-x:auto}
 <div class="pbar" id="pbar"><div class="seg per" role="group" aria-label="Periodo"><button type="button" data-per="mes"><span class="lg">Mes completo</span><span class="sh">Mes</span></button><button type="button" data-per="q1">1ª quincena</button><button type="button" data-per="q2">2ª quincena</button></div><p class="sub pnote" id="pnote" hidden>Aquí solo cambia si te muestro cuánto apartar por mes o por quincena.</p></div>
 <section class="band" id="resumen" data-v="inicio"><div class="wrap">
   <div class="remind" id="remind" hidden></div>
+  <div class="paydue" id="paydue" hidden></div>
   <figure class="verse" id="verse" hidden><blockquote id="vtext"></blockquote><figcaption><b id="vref"></b> <span>· Reina-Valera 1909</span></figcaption><div class="vacts"><button type="button" class="ghost" id="vnext">Otro versículo</button><button type="button" class="icon" id="vhide" aria-label="Ocultar el versículo por hoy">✕</button></div></figure>
   <div class="qa" id="qa">
     <button type="button" class="qa-g" data-qa="gasto"><span class="qi"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 12h12"/></svg></span><span><b>Anotar gasto</b><small>Lo que pagaste hoy</small></span></button>
@@ -340,8 +367,9 @@ pre,.scroll{overflow-x:auto}
       <div class="seg" role="group" aria-label="Tipo"><button type="button" data-t="gasto" aria-pressed="true">Gasto</button><button type="button" data-t="ingreso" aria-pressed="false">Ingreso</button></div>
       <label for="amt" id="amtlbl">Monto</label>
       <input id="amt" class="amt" inputmode="decimal" placeholder="0.00" required autocomplete="off">
-      <label for="cat">Categoría</label>
-      <select id="cat"></select>
+      <label id="catlbl">Categoría</label>
+      <select id="cat" class="sr" tabindex="-1" aria-hidden="true"></select>
+      <div class="chips" id="catchips" role="radiogroup" aria-labelledby="catlbl"></div>
       <div class="brk" id="brk" hidden>
         <label class="chk"><input type="checkbox" id="brkon" checked> Desglosar descuentos de ley (Panamá)</label>
         <div id="brkbody">
@@ -357,8 +385,9 @@ pre,.scroll{overflow-x:auto}
       </div>
       <label for="desc">Descripción</label>
       <input id="desc" placeholder="Ej. almuerzo, gasolina, luz" autocomplete="off">
-      <label for="date">Fecha</label>
-      <input id="date" type="date" required>
+      <label id="datelbl">Fecha</label>
+      <div class="dchips" role="radiogroup" aria-labelledby="datelbl"><button type="button" data-dq="hoy" role="radio">Hoy</button><button type="button" data-dq="ayer" role="radio">Ayer</button><button type="button" data-dq="otra" role="radio">Otra fecha</button></div>
+      <input id="date" type="date" required aria-label="Fecha del movimiento" hidden>
       <button class="pri" type="submit">Guardar</button>
       <p class="status" id="status"></p>
     </form>
@@ -397,7 +426,8 @@ pre,.scroll{overflow-x:auto}
   <div class="grid" style="margin-top:16px">
     <div class="card">
       <label style="margin-top:0" id="sworklbl">¿Cómo trabajas?</label>
-      <div class="seg" id="swork" role="group" aria-labelledby="sworklbl" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" data-work="planilla">En planilla</button><button type="button" data-work="servicios">Servicios profesionales</button></div>
+      <div class="seg" id="swork" role="group" aria-labelledby="sworklbl" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr))"><button type="button" data-work="planilla">En planilla</button><button type="button" data-work="servicios">Servicios profesionales</button><button type="button" data-work="otro">Otro ingreso</button></div>
+      <p class="sub" id="salfrom" style="margin:8px 0 0;font-size:14px"></p>
       <label for="sbruto" id="sbrutolbl">Salario bruto mensual</label>
       <input id="sbruto" class="amt" inputmode="decimal" placeholder="0.00" autocomplete="off">
       <label for="spago">Te pagan</label>
@@ -516,6 +546,7 @@ pre,.scroll{overflow-x:auto}
       <label for="bankname">Tu nombre como aparece en el banco</label>
       <input id="bankname" placeholder="Ej. MARIA JOSE PEREZ" autocomplete="off">
       <p class="sub">Sirve para reconocer las transferencias entre tus propias cuentas y no contarlas como gastos o ingresos.</p>
+      <div class="inccard" id="inccard"></div>
       <div id="payrollrow" style="margin-top:16px"><label for="work" style="margin-top:0">¿Cómo recibes tus ingresos?</label>
       <select id="work"><option value="planilla">En planilla (asalariada/o): con Seguro Social, Seguro Educativo e ISR</option><option value="servicios">Por servicios profesionales o independiente: sin descuentos de ley</option><option value="">Prefiero no ver descuentos</option></select>
       <p class="sub" id="worknote" style="margin-top:6px"></p></div>
@@ -551,6 +582,8 @@ pre,.scroll{overflow-x:auto}
   <p class="err" id="eerr" role="alert"></p>
   <div class="acts"><button class="pri" type="submit">Guardar cambios</button><button type="button" id="ecancel">Cancelar</button><button type="button" class="danger" id="edel">Eliminar</button></div>
 </form></div>
+<button type="button" class="fab" id="fab" aria-label="Anotar un gasto"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Anotar</span></button>
+<div class="modal" id="owiz" role="dialog" aria-modal="true" aria-labelledby="otitle"><div class="box obox" id="obox"></div></div>
 <div class="modal" id="rmodal" role="dialog" aria-modal="true" aria-labelledby="rtitle"><div class="box rbox">
   <div class="rhead"><h3 id="rtitle">Cuadrar con mi banco</h3><button type="button" class="icon" id="rclose" aria-label="Cerrar">✕</button></div>
   <p class="sub" style="margin-top:0">Escribe lo que de verdad tienes hoy y te digo cuánto falta por anotar. Así tus números quedan iguales a los de tu banco.</p>
@@ -589,7 +622,7 @@ pre,.scroll{overflow-x:auto}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="config.js?v=24"></script>
-<script src="app.js?v=24"></script>
+<script src="config.js?v=25"></script>
+<script src="app.js?v=25"></script>
 </body>
 </html>
