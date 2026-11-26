@@ -360,17 +360,19 @@ pre,.scroll{overflow-x:auto}
 </div></section>
 
 <section class="band" id="salario" data-v="plan"><div class="wrap">
-  <h2>Mi salario</h2>
-  <p class="sub">Opcional, para asalariados en Panamá. Pon tu salario bruto y tus descuentos: los de ley (Seguro Social, Seguro Educativo e impuesto sobre la renta) y los directos (préstamos, cooperativa, pensión, etc.). Te muestro el neto y registras cada pago con un toque.</p>
+  <h2 id="saltitle">Mi salario</h2>
+  <p class="sub" id="salintro"></p>
   <div class="grid" style="margin-top:16px">
     <div class="card">
-      <label for="sbruto" style="margin-top:0">Salario bruto mensual</label>
+      <label style="margin-top:0" id="sworklbl">¿Cómo trabajas?</label>
+      <div class="seg" id="swork" role="group" aria-labelledby="sworklbl" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" data-work="planilla">En planilla</button><button type="button" data-work="servicios">Servicios profesionales</button></div>
+      <label for="sbruto" id="sbrutolbl">Salario bruto mensual</label>
       <input id="sbruto" class="amt" inputmode="decimal" placeholder="0.00" autocomplete="off">
       <label for="spago">Te pagan</label>
       <select id="spago"><option value="q">Por quincena (días 15 y 30)</option><option value="m">Una vez al mes (día 30)</option></select>
-      <label class="chk"><input type="checkbox" id="smanual"> Ajustar los descuentos de ley a mano, según mi talonario</label>
-      <h3 style="margin-top:20px">Descuentos directos</h3>
-      <p class="sub" style="margin-top:2px">Lo que tu empresa te descuenta directo de la planilla. Escribe el monto de todo el mes.</p>
+      <label class="chk" id="smanualrow"><input type="checkbox" id="smanual"> Ajustar los descuentos de ley a mano, según mi talonario</label>
+      <h3 style="margin-top:20px" id="sdirtitle">Descuentos directos</h3>
+      <p class="sub" style="margin-top:2px" id="sdirnote">Lo que tu empresa te descuenta directo de la planilla. Escribe el monto de todo el mes.</p>
       <div id="sdirlist"></div>
       <div class="ctrls"><input id="sdname" placeholder="Ej. Préstamo personal" aria-label="Nombre del descuento directo"><input id="sdamt" inputmode="decimal" placeholder="Monto al mes" aria-label="Monto al mes"><button id="sdadd" type="button">Añadir</button></div>
       <div class="acts"><button class="pri" id="salsave" type="button">Guardar mi salario</button></div>
@@ -482,7 +484,9 @@ pre,.scroll{overflow-x:auto}
       <label for="bankname">Tu nombre como aparece en el banco</label>
       <input id="bankname" placeholder="Ej. MARIA JOSE PEREZ" autocomplete="off">
       <p class="sub">Sirve para reconocer las transferencias entre tus propias cuentas y no contarlas como gastos o ingresos.</p>
-      <label class="chk" id="payrollrow" style="margin-top:16px"><input type="checkbox" id="payroll"> Soy asalariada/o en Panamá: mostrar los descuentos de ley (Seguro Social, Seguro Educativo e impuesto sobre la renta) al registrar mi salario</label>
+      <div id="payrollrow" style="margin-top:16px"><label for="work" style="margin-top:0">¿Cómo recibes tus ingresos?</label>
+      <select id="work"><option value="planilla">En planilla (asalariada/o): con Seguro Social, Seguro Educativo e ISR</option><option value="servicios">Por servicios profesionales o independiente: sin descuentos de ley</option><option value="">Prefiero no ver descuentos</option></select>
+      <p class="sub" id="worknote" style="margin-top:6px"></p></div>
       <div class="acts"><button id="savebank">Guardar</button><button id="exportb">Descargar respaldo</button><label class="btnlike" for="importfile" style="margin:0">Restaurar respaldo<input type="file" id="importfile" accept=".json" hidden></label><button id="logout">Cerrar sesión</button></div>
       <p class="status" id="acstatus"></p>
       <label class="chk" style="margin-top:16px"><input type="checkbox" id="verseon"> Mostrar un versículo de la Biblia sobre finanzas al abrir la app</label>
@@ -530,7 +534,7 @@ pre,.scroll{overflow-x:auto}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="config.js?v=20"></script>
-<script src="app.js?v=20"></script>
+<script src="config.js?v=21"></script>
+<script src="app.js?v=21"></script>
 </body>
 </html>

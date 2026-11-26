@@ -106,7 +106,9 @@ const isrAnnual=a=>a<=11000?0:a<=50000?(a-11000)*.15:5850+(a-50000)*.25;
 const r2=x=>Math.round(x*100)/100;
 function payroll(bruto,pago){const k=pago==='q'?2:1;return{bruto:r2(bruto),css:r2(bruto*PAY.css),se:r2(bruto*PAY.se),isr:r2(isrAnnual(bruto*k*13)/13/k),otros:0,pago}}
 const brkTotal=b=>(b.css||0)+(b.se||0)+(b.isr||0);
-const payOn=()=>!!(S.settings&&S.settings.payroll);
+const workKind=()=>{const s=S.settings||{};return s.work!==undefined?s.work:(s.payroll?'planilla':'')};
+const payOn=()=>workKind()==='planilla';
+const isServ=sal=>(sal&&sal.kind||workKind())==='servicios';
 // ---- Préstamos y deudas: el saldo = monto inicial − capital pagado (pagos a mano + descuentos de planilla)
 const dK=d=>d.freq==='q'?24:12;
 function debtPaid(id,exceptTx){let p=0;
@@ -128,7 +130,7 @@ const debtsActive=()=>S.debt.filter(d=>debtSaldo(d)>0);
 const salSaved=()=>S.settings&&S.settings.salary&&Number(S.settings.salary.bruto)>0?S.settings.salary:null;
 let salDraft=null;
 function salCalc(sal){const b=Number(sal.bruto)||0;
-  const law=sal.manual&&sal.law?{css:Number(sal.law.css)||0,se:Number(sal.law.se)||0,isr:Number(sal.law.isr)||0}:{css:b*PAY.css,se:b*PAY.se,isr:isrAnnual(b*13)/13};
+  const law=isServ(sal)?{css:0,se:0,isr:0}:sal.manual&&sal.law?{css:Number(sal.law.css)||0,se:Number(sal.law.se)||0,isr:Number(sal.law.isr)||0}:{css:b*PAY.css,se:b*PAY.se,isr:isrAnnual(b*13)/13};
   const dir=(sal.directos||[]).map(d=>({name:String(d.name||'Descuento'),amount:Number(d.amount)||0}))
     .concat(S.debt.filter(d=>d.directo&&debtSaldo(d)>0).map(d=>({name:d.name,amount:(Number(d.cuota)||0)*(d.freq==='q'?2:1),debt:d.id}))),dirT=sumAmt(dir),lawT=law.css+law.se+law.isr;
   return{b,css:law.css,se:law.se,isr:law.isr,dir,dirT,law:lawT,net:b-lawT-dirT,k:sal.pago==='m'?1:2}}
@@ -138,7 +140,7 @@ function salPayments(ym){const sal=salSaved();if(!sal)return[];const c=salCalc(s
 function salTx(p){const c=p.c,k=c.k,br={bruto:r2(c.b/k),css:r2(c.css/k),se:r2(c.se/k),isr:r2(c.isr/k),directos:c.dir.map(d=>{const a=r2(d.amount/k);if(!d.debt)return{name:d.name,amount:a};const db=S.debt.find(x=>x.id===d.debt);const sal=db?debtSaldo(db,p.id):0;return{name:d.name,amount:a,debt:d.debt,interest:db?Math.min(a,r2(sal*(db.rate||0)/100/(k===2?24:12))):0}}),pago:k===2?'q':'m'};
   br.otros=r2(sumAmt(br.directos));
   const amount=r2(c.net/k);br.isr=r2(br.bruto-br.css-br.se-br.otros-amount);if(br.isr<0)br.isr=0;
-  return{kind:'tx',id:p.id,type:'ingreso',cat:'Salario',desc:k===2?'Salario '+p.label:'Salario',date:p.date,amount,breakdown:br}}
+  return{kind:'tx',id:p.id,type:'ingreso',cat:'Salario',desc:(isServ(salSaved())?'Cobro':'Salario')+(k===2?' '+p.label:''),date:p.date,amount,breakdown:br}}
 const fixedAmt=f=>{if(f.gross&&fType(f)==='ingreso'){const p=payroll(Number(f.amount)||0,f.pago||'q');return r2(p.bruto-brkTotal(p))}return Number(f.amount)||0};
 const rhythm=()=>period==='mes'?'mes':'quincena';
 const RLABEL=()=>rhythm()==='mes'?'al mes':'por quincena';
@@ -222,7 +224,7 @@ function renderList(){
     .sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.id).localeCompare(String(a.id)));
   $('list').innerHTML=rows.length?`<table class="mlist"><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="m">Monto</th><th></th></tr></thead><tbody>${rows.map(t=>{
     const d=String(t.date).slice(8,10)+'/'+String(t.date).slice(5,7);
-    return `<tr data-edit="${esc(t.id)}" tabindex="0"><td class="c-d">${esc(d)}</td><td class="c-t"><span class="t1">${esc(t.desc||'—')}</span><span class="t2">${esc(d)} · ${esc(t.cat)}${t.breakdown?' · bruto '+money(t.breakdown.bruto):''}</span></td><td class="c-c">${esc(t.cat)}</td><td class="m${t.type==='ingreso'?' in':''}">${t.type==='ingreso'?'+':'-'}${money(t.amount)}</td><td class="c-x"><button class="x" data-del="${esc(t.id)}" aria-label="Eliminar ${esc(t.desc||'movimiento')}"><span class="lg">Eliminar</span><span class="sh" aria-hidden="true">✕</span></button></td></tr>`}).join('')}</tbody></table>`
+    return `<tr data-edit="${esc(t.id)}" tabindex="0"><td class="c-d">${esc(d)}</td><td class="c-t"><span class="t1">${esc(t.desc||'—')}</span><span class="t2">${esc(d)} · ${esc(t.cat)}${t.breakdown&&(t.breakdown.css||t.breakdown.se||t.breakdown.isr)?' · bruto '+money(t.breakdown.bruto):''}</span></td><td class="c-c">${esc(t.cat)}</td><td class="m${t.type==='ingreso'?' in':''}">${t.type==='ingreso'?'+':'-'}${money(t.amount)}</td><td class="c-x"><button class="x" data-del="${esc(t.id)}" aria-label="Eliminar ${esc(t.desc||'movimiento')}"><span class="lg">Eliminar</span><span class="sh" aria-hidden="true">✕</span></button></td></tr>`}).join('')}</tbody></table>`
     :`<p class="empty">${q||fc?'Nada coincide con la búsqueda.':'No hay movimientos en '+esc(period==='mes'?ymLabel(month):PNAME[period]+' de '+ymLabel(month))+'.'}</p>`;
 }
 function renderFixed(){
@@ -240,6 +242,15 @@ function renderFixed(){
 }
 function renderSalary(){
   if(!salDraft)salDraft=JSON.parse(JSON.stringify(salSaved()||{bruto:'',pago:'q',manual:false,law:null,directos:[]}));
+  if(!salDraft.kind)salDraft.kind=workKind()==='servicios'?'servicios':'planilla';
+  const sv=salDraft.kind==='servicios';
+  document.querySelectorAll('#swork button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.work===salDraft.kind));
+  $('salintro').textContent=sv?'Para quienes cobran por servicios profesionales o trabajan por su cuenta: sin Seguro Social ni ISR descontados. Pon cuánto cobras al mes y, si quieres, lo que apartas (por ejemplo para tu declaración de renta). Registras cada cobro con un toque.':'Opcional, para asalariados en Panamá. Pon tu salario bruto y tus descuentos: los de ley (Seguro Social, Seguro Educativo e impuesto sobre la renta) y los directos (préstamos, cooperativa, pensión, etc.). Te muestro el neto y registras cada pago con un toque.';
+  $('saltitle').textContent=sv?'Mis ingresos':'Mi salario';
+  $('sbrutolbl').textContent=sv?'Ingreso mensual (lo que cobras)':'Salario bruto mensual';
+  $('smanualrow').hidden=sv;$('sdirtitle').textContent=sv?'Apartados o descuentos fijos (opcional)':'Descuentos directos';
+  $('sdirnote').textContent=sv?'Lo que separas de cada cobro: ahorro para impuestos, un préstamo, etc. Escribe el monto de todo el mes.':'Lo que tu empresa te descuenta directo de la planilla. Escribe el monto de todo el mes.';
+  $('salsave').textContent=sv?'Guardar mi ingreso':'Guardar mi salario';
   if(document.activeElement!==$('sbruto'))$('sbruto').value=salDraft.bruto||'';
   $('spago').value=salDraft.pago==='m'?'m':'q';$('smanual').checked=!!salDraft.manual;
   $('sdirlist').innerHTML=(salDraft.directos||[]).length?salDraft.directos.map((d,i)=>`<div class="payrow"><span>${esc(d.name)}</span><b>${money(d.amount)}</b><button class="x" data-sddel="${i}" aria-label="Quitar ${esc(d.name)}">✕</button></div>`).join(''):'<p class="sub" style="margin:6px 0 0">No tienes descuentos directos.</p>';
@@ -247,15 +258,16 @@ function renderSalary(){
 }
 function renderSalaryRes(){
   const c=salCalc(salDraft),q=c.k===2;
-  if(!(c.b>0)){$('sres').innerHTML='<h3 style="margin-top:0">Tu neto</h3><p class="sub">Escribe tu salario bruto mensual y aquí verás tus descuentos y lo que de verdad recibes.</p>';return}
+  if(!(c.b>0)){$('sres').innerHTML='<h3 style="margin-top:0">Tu neto</h3><p class="sub">'+(isServ(salDraft)?'Escribe cuánto cobras al mes y aquí verás lo que te queda después de tus apartados.':'Escribe tu salario bruto mensual y aquí verás tus descuentos y lo que de verdad recibes.')+'</p>';return}
   const cell=(v,key)=>salDraft.manual&&key?`<input inputmode="decimal" data-slaw="${key}" value="${r2(v).toFixed(2)}" aria-label="${key==='css'?'Seguro Social':key==='se'?'Seguro Educativo':'Impuesto sobre la renta'} al mes">`:money(v);
   const row=(l,v,cls,key)=>`<tr class="${cls||''}"><td>${l}</td><td class="m">${cell(v,key)}</td>${q?`<td class="m">${money(v/2)}</td>`:''}</tr>`;
   let t=`<h3 style="margin-top:0">Tu neto</h3><table class="stab"><thead><tr><th></th><th>Al mes</th>${q?'<th>Por quincena</th>':''}</tr></thead><tbody>`
-    +row('Salario bruto',c.b,'bold')+row('Seguro Social (9.75%)',c.css,'neg','css')+row('Seguro Educativo (1.25%)',c.se,'neg','se')+row('Impuesto sobre la renta'+(salDraft.manual?'':' (estimado)'),c.isr,'neg','isr')
-    +c.dir.map(d=>row(esc(d.name)+` <span class="sub" style="font-size:12px">(${d.debt?'deuda':'directo'})</span>`,d.amount,'neg')).join('')
-    +row('Total descuentos',c.law+c.dirT,'bold')+row('Neto que recibes',c.net,'sum')+'</tbody></table>';
+    +(isServ(salDraft)?row('Ingreso',c.b,'bold'):row('Salario bruto',c.b,'bold')+row('Seguro Social (9.75%)',c.css,'neg','css')+row('Seguro Educativo (1.25%)',c.se,'neg','se')+row('Impuesto sobre la renta'+(salDraft.manual?'':' (estimado)'),c.isr,'neg','isr'))
+    +c.dir.map(d=>row(esc(d.name)+` <span class="sub" style="font-size:12px">(${d.debt?'deuda':isServ(salDraft)?'apartado':'directo'})</span>`,d.amount,'neg')).join('')
+    +(isServ(salDraft)&&!c.dir.length?'':row(isServ(salDraft)?'Total apartados':'Total descuentos',c.law+c.dirT,'bold'))+row(isServ(salDraft)?'Te queda':'Neto que recibes',c.net,'sum')+'</tbody></table>';
   if(c.net<0)t+='<p class="err">Los descuentos son mayores que el salario. Revisa los montos.</p>';
-  if(!salDraft.manual)t+='<p class="sub" style="font-size:13px">Impuesto estimado sobre 13 salarios al año (exento hasta $11,000; 15% hasta $50,000; 25% sobre el excedente). Si tu talonario dice otra cosa, marca "Ajustar a mano".</p>';
+  if(isServ(salDraft))t+='<p class="sub" style="font-size:13px">Sin descuentos de ley: como trabajas por servicios profesionales, tu ingreso se registra completo.</p>';
+  else if(!salDraft.manual)t+='<p class="sub" style="font-size:13px">Impuesto estimado sobre 13 salarios al año (exento hasta $11,000; 15% hasta $50,000; 25% sobre el excedente). Si tu talonario dice otra cosa, marca "Ajustar a mano".</p>';
   const saved=salSaved(),dirty=JSON.stringify(saved||null)!==JSON.stringify(salDraft);
   if(saved){const ps=salPayments(month);
     t+=`<h3 style="margin-top:22px">Pagos de ${esc(ymLabel(month))}</h3>`+(dirty?'<p class="sub">Tienes cambios sin guardar: los pagos usan tu salario guardado.</p>':'')
@@ -421,7 +433,7 @@ function renderAccount(){
   $('whoami').textContent=mode==='cloud'?`Entraste como ${user&&user.email||''}. Tus datos se guardan en tu cuenta y solo tú los ves.`:'Estás probando sin cuenta: los datos se guardan solo en este dispositivo. Crea una cuenta para no perderlos y usarlos en tu celular y computadora.';
   if(document.activeElement!==$('bankname'))$('bankname').value=(S.settings&&S.settings.bankName)||'';
   $('logout').textContent=mode==='cloud'?'Cerrar sesión':'Salir del modo prueba';
-  $('payroll').checked=payOn();$('verseon').checked=verseOn();syncX();syncBrk(false);
+  $('work').value=workKind();$('worknote').textContent=WNOTE[workKind()]||'';$('verseon').checked=verseOn();syncX();syncBrk(false);
 }
 
 // ============ registrar con alerta de presupuesto ============
@@ -796,7 +808,9 @@ async function doImport(){
 }
 
 // ============ cuenta, respaldo y comentarios ============
-$('payroll').addEventListener('change',()=>{setSingle('settings',Object.assign({},S.settings||{},{payroll:$('payroll').checked}));toast($('payroll').checked?'Listo: al registrar tu salario verás los descuentos de ley.':'Desglose de descuentos desactivado.')});
+const WNOTE={planilla:'Al registrar tu salario verás el desglose de Seguro Social, Seguro Educativo e ISR.',servicios:'Tu ingreso se registra completo, sin descuentos de ley. Puedes anotar apartados propios en Mi salario.','':'No se mostrará ningún desglose de descuentos.'};
+function setWork(w){const st=Object.assign({},S.settings||{},{work:w,payroll:w==='planilla'});const sal=salSaved();if(sal&&w)st.salary=Object.assign({},sal,{kind:w});if(salDraft&&w)salDraft.kind=w;setSingle('settings',st)}
+$('work').addEventListener('change',()=>{const w=$('work').value;setWork(w);toast(w==='planilla'?'Listo: verás los descuentos de ley al registrar tu salario.':w==='servicios'?'Listo: tus ingresos se registran sin descuentos de ley.':'Desglose de descuentos desactivado.')});
 $('savebank').addEventListener('click',()=>{setSingle('settings',Object.assign({},S.settings||{},{bankName:$('bankname').value.trim().slice(0,80)}));toast('Guardado')});
 $('exportb').addEventListener('click',()=>{
   const blob=new Blob([JSON.stringify({app:CFG.appName,version:1,exported:new Date().toISOString(),docs:allDocs()},null,1)],{type:'application/json'});
@@ -867,7 +881,7 @@ const TOURS={
   {sel:'#goals',t:'Aporta a tus metas',d:'Cada vez que apartes dinero, regístralo en la meta y verás tu avance.'},
   {sel:'#deseos .wrap',t:'Lista de deseos',d:'Antes de comprar algo por impulso, anótalo aquí con un plazo. Si al final lo compras, se registra como gasto.'}],
  plan:[
-  {sel:'#salario .wrap',t:'Mi salario',d:'Escribe tu salario bruto: calculo Seguro Social, Seguro Educativo, ISR y tus descuentos directos. Cuando cobres, toca registrar y se anota el neto como ingreso.'},
+  {sel:'#salario .wrap',t:'Mi salario',d:'Elige si trabajas en planilla o por servicios profesionales. En planilla calculo Seguro Social, Seguro Educativo e ISR; por servicios no descuento nada de eso. Cuando cobres, toca Registrar y se anota como ingreso.'},
   {sel:'#deudas .wrap',t:'Préstamos y deudas',d:'Anota el total y la cuota. Cada pago baja el saldo y te digo cuándo terminas de pagar.'},
   {sel:'#fijos .wrap',t:'Gastos e ingresos fijos',d:'Alquiler, luz, celular… Se descuentan de lo que te queda libre y te recuerdo pagarlos.'},
   {sel:'#reparto .wrap',t:'Reparto del salario',d:'Decide qué porcentaje de cada pago va a gastos, ahorro, diezmo y más.'}],
@@ -876,7 +890,7 @@ const TOURS={
   {sel:'#hormiga .wrap',t:'Gastos hormiga',d:'Gastos pequeños que se repiten y, sumados, pesan.'},
   {sel:'#historial .wrap',t:'Últimos 6 meses',d:'Compara cuánto entró y salió cada mes.'}],
  cuenta:[
-  {sel:'#payrollrow',t:'Descuentos de ley',d:'Si eres asalariada/o en Panamá, actívalo para ver el desglose de tu salario.'},
+  {sel:'#payrollrow',t:'¿Planilla o servicios profesionales?',d:'Elige cómo recibes tus ingresos. En planilla te muestro Seguro Social, Seguro Educativo e ISR; por servicios profesionales tu ingreso se registra completo, sin descuentos.'},
   {sel:'#fb',t:'Cuéntame qué mejorar',d:'Escríbeme lo que te gustó, lo que no entendiste o lo que le falta a la app.'}]
 };
 const toursDone=()=>{const s=new Set((S.settings&&S.settings.tours)||[]);try{(JSON.parse(localStorage.getItem('fg.tours')||'[]')).forEach(x=>s.add(x))}catch(e){}return s};
@@ -1012,10 +1026,11 @@ $('sres').addEventListener('change',e=>{const k=e.target.dataset&&e.target.datas
 $('sdadd').addEventListener('click',()=>{const n=$('sdname').value.trim().slice(0,40),a=num($('sdamt').value);
   if(!n){$('sdname').focus();return}if(!(a>0)){$('sdamt').focus();return}
   salDraft.directos=(salDraft.directos||[]).concat([{name:n,amount:a}]);$('sdname').value='';$('sdamt').value='';renderSalary()});
-$('salsave').addEventListener('click',()=>{const b=Number(salDraft.bruto)||0;if(!(b>0)){$('salstatus').textContent='Escribe tu salario bruto mensual.';$('sbruto').focus();return}
-  if(salCalc(salDraft).net<0){$('salstatus').textContent='Los descuentos son mayores que el salario.';return}
+document.querySelectorAll('#swork button').forEach(b=>b.addEventListener('click',()=>{salDraft.kind=b.dataset.work;renderSalary()}));
+$('salsave').addEventListener('click',()=>{const b=Number(salDraft.bruto)||0;if(!(b>0)){$('salstatus').textContent=isServ(salDraft)?'Escribe cuánto cobras al mes.':'Escribe tu salario bruto mensual.';$('sbruto').focus();return}
+  if(salCalc(salDraft).net<0){$('salstatus').textContent='Los descuentos son mayores que el ingreso.';return}
   const clean=JSON.parse(JSON.stringify(salDraft));delete clean._lawTouched;salDraft=JSON.parse(JSON.stringify(clean));
-  setSingle('settings',Object.assign({},S.settings||{},{salary:clean,payroll:true}));$('salstatus').textContent='';toast('Salario guardado. Ya puedes registrar tus pagos.')});
+  const sv=clean.kind==='servicios';setSingle('settings',Object.assign({},S.settings||{},{salary:clean,work:clean.kind,payroll:!sv}));$('salstatus').textContent='';toast(sv?'Ingreso guardado. Ya puedes registrar tus cobros.':'Salario guardado. Ya puedes registrar tus pagos.')});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.sddel!==undefined){salDraft.directos.splice(Number(b.dataset.sddel),1);renderSalary()}
   else if(b.dataset.salreg){const p=salPayments(month).find(x=>x.key===b.dataset.salreg);if(p&&!p.done){upsert(p.tx);lastIncome=p.tx.amount;$('samt').value=p.tx.amount.toFixed(2);toast('Registrado: '+money(p.tx.amount)+' neto. En Reparto ves cómo dividirlo.')}}
