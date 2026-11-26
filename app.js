@@ -206,7 +206,7 @@ function renderTop(){
   const dl=ofPeriod().filter(t=>t.breakdown).reduce((a,t)=>a+brkTotal(t.breakdown),0);
   const fl=[];if(dl)fl.push(['Descuentos de ley ya aplicados',dl]);if(spT)fl.push([isServ(salSaved())?'Cobros por recibir':'Salario por recibir',spT]);if(r2(pi-spT)>0)fl.push(['Ingresos fijos por recibir',pi-spT]);if(pg-dpT>0.004)fl.push(['Gastos fijos por pagar',-(pg-dpT)]);if(dpT)fl.push(['Cuotas de deudas por pagar',-dpT]);
   $('free').innerHTML=(S.fixed.length||spT||dpT)?((pg||pi)?'<ul>'+fl.map(([l,v])=>`<li><span>${esc(l)}</span><b>${v<0?'−'+money(-v):money(v)}</b></li>`).join('')+`<li class="tot"><span>Libre de verdad</span><b>${money(T.avail-pg+pi)}</b></li></ul>`:'Todo lo fijo de este periodo ya está registrado.'):'Agrega tus gastos e ingresos fijos (en Plan) para ver cuánto te queda libre de verdad.';
-  renderQZ();
+  renderQZ();renderBankLine();
   const cats=editing?GASTOS.slice():GASTOS.filter(c=>T.by[c]||S.budgets[c]);
   const bud=c=>(S.budgets[c]||0)*(editing?1:sc);
   const max=Math.max(1,...cats.map(c=>Math.max(T.by[c]||0,bud(c))));
@@ -231,7 +231,7 @@ function renderList(){
     .sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.id).localeCompare(String(a.id)));
   if(!rows.length){$('list').innerHTML=`<p class="empty">${q||fc?'Nada coincide con la búsqueda.':'No hay movimientos en '+esc(period==='mes'?ymLabel(month):PNAME[period]+' de '+ymLabel(month))+'.'}</p>`;return}
   const tr=t=>{const d=String(t.date).slice(8,10)+'/'+String(t.date).slice(5,7);
-    return `<tr data-edit="${esc(t.id)}" tabindex="0"><td class="c-d">${esc(d)}</td><td class="c-t"><span class="t1">${esc(t.desc||'—')}</span><span class="t2">${esc(t.cat)}${t.breakdown&&(t.breakdown.css||t.breakdown.se||t.breakdown.isr)?' · bruto '+money(t.breakdown.bruto):''}</span></td><td class="c-c">${esc(t.cat)}</td><td class="m${t.type==='ingreso'?' in':''}">${t.type==='ingreso'?'+':'-'}${money(t.amount)}</td><td class="c-x"><button class="x" data-del="${esc(t.id)}" aria-label="Eliminar ${esc(t.desc||'movimiento')}"><span class="lg">Eliminar</span><span class="sh" aria-hidden="true">✕</span></button></td></tr>`};
+    return `<tr data-edit="${esc(t.id)}" tabindex="0"><td class="c-d">${esc(d)}</td><td class="c-t"><span class="t1">${esc(t.desc||'—')}</span><span class="t2">${esc(t.cat)}${t.breakdown&&(t.breakdown.css||t.breakdown.se||t.breakdown.isr)?' · bruto '+money(t.breakdown.bruto):''}</span></td><td class="c-c">${esc(t.cat)}</td><td class="m${t.type==='ingreso'?' in':''}">${t.type==='ingreso'?'+':'-'}${money(t.amount)}</td><td class="c-x"><button class="x" data-editbtn="${esc(t.id)}" aria-label="Editar ${esc(t.desc||'movimiento')}"><span class="lg">Editar</span><span class="sh" aria-hidden="true">✎</span></button><button class="x" data-del="${esc(t.id)}" aria-label="Eliminar ${esc(t.desc||'movimiento')}"><span class="lg">Eliminar</span><span class="sh" aria-hidden="true">✕</span></button></td></tr>`};
   const groups=[];for(const t of rows){const g=Number(String(t.date).slice(8,10))<=15?'q1':'q2';let G=groups[groups.length-1];if(!G||G.q!==g){G={q:g,rows:[]};groups.push(G)}G.rows.push(t)}
   const body=groups.map(G=>{const inc=sumAmt(G.rows.filter(t=>t.type==='ingreso')),out=sumAmt(G.rows.filter(t=>t.type!=='ingreso'&&t.type!=='ahorro')),sav=sumAmt(G.rows.filter(t=>t.type==='ahorro')),left=inc-out-sav;
     let html=`<tbody><tr class="grp"><th colspan="5"><div class="grpbox"><b>${G.q==='q1'?'1ª':'2ª'} quincena · ${qRange(G.q,month)}</b><span>Entró <span class="gi">+${money(inc)}</span></span><span>Salió −${money(out+sav)}</span><span class="gq">Queda ${left<0?'−'+money(-left):money(left)}</span></div></th></tr>`,last='';
@@ -877,6 +877,56 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-qz]');if(!
 const DOW=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 const dayLabel=s=>{const d=new Date(s+'T12:00:00');return s===today()?'Hoy':DOW[d.getDay()]+' '+d.getDate()};
 
+// ============ cuadrar con el banco ============
+const bankStart=ym=>{const b=(S.settings&&S.settings.bankStart)||{};return b[ym]};
+function bankCalc(ym,start,savIn){const td=today(),txs=ofMonth(ym).filter(t=>String(t.date)<=td);let inc=0,out=0,sav=0;
+  for(const t of txs){const a=Number(t.amount)||0;if(t.type==='ingreso')inc+=a;else if(t.type==='ahorro')sav+=a;else out+=a}
+  const exp=r2((start||0)+inc-out-(savIn?0:sav));return{inc,out,sav,exp}}
+let recAdded=[];
+function recOpen(){const ym=today().slice(0,7);if(month!==ym){month=ym;render()}
+  const st=bankStart(ym),bc=S.settings&&S.settings.bankCheck;
+  $('rstart').value=st!=null?Number(st).toFixed(2):'';$('rbank').value='';$('rsav').checked=!(bc&&bc.savOut);
+  $('rcat').innerHTML=opts(GASTOS);$('rcat').value='Otros';$('rdate').value=today();$('rdate').max=today();recAdded=[];
+  $('rmodal').classList.add('on');recRender();setTimeout(()=>$('rbank').focus(),30)}
+function recClose(){$('rmodal').classList.remove('on')}
+function recRender(){const ym=today().slice(0,7),start=num($('rstart').value)||0,bank=num($('rbank').value),savIn=$('rsav').checked;
+  const c=bankCalc(ym,start,savIn);$('rsavw').hidden=!(c.sav>0);
+  let t=`<div class="rcalc"><div class="rl"><span>Empezaste el mes con</span><span>${money(start)}</span></div><div class="rl"><span>+ Ingresos anotados hasta hoy</span><span>${money(c.inc)}</span></div><div class="rl"><span>− Gastos anotados hasta hoy</span><span>${money(c.out)}</span></div>${c.sav&&!savIn?`<div class="rl"><span>− Apartado para metas</span><span>${money(c.sav)}</span></div>`:''}<div class="rl t"><span>Según FinGlory deberías tener</span><span>${money(c.exp)}</span></div></div>`;
+  let acts='<button type="button" id="rgo">Revisar mis movimientos</button><button type="button" class="pri" id="rdone">Listo</button>';
+  if(isFinite(bank)){const d=r2(c.exp-bank);
+    if(Math.abs(d)<0.01){t+=`<div class="rdiff ok">¡Cuadrado! Tus números coinciden con tu banco.<big>${money(bank)}</big></div>`;$('raddw').hidden=true}
+    else if(d>0){t+=`<div class="rdiff bad">Te faltan por anotar<big>${money(d)}</big>en gastos. Agrégalos abajo o revisa si algún movimiento está mal.</div>`;$('raddw').hidden=false;
+      acts=`<button type="button" id="rgo">Revisar mis movimientos</button><button type="button" id="rrest">Anotar ${money(d)} como gastos sin identificar</button><button type="button" class="pri" id="rdone">Listo</button>`}
+    else{t+=`<div class="rdiff more">Tienes <big>${money(-d)}</big>más de lo que anotaste. Puede ser dinero que traías de antes o un ingreso que no registraste.</div>`;$('raddw').hidden=true;
+      acts=`<button type="button" id="rgo">Revisar mis movimientos</button><button type="button" id="rstartfix">Lo traía de antes: sumarlo al inicio del mes</button><button type="button" id="rincfix">Anotarlo como ingreso</button><button type="button" class="pri" id="rdone">Listo</button>`}
+  }else $('raddw').hidden=true;
+  $('rcalc').innerHTML=t;$('racts').innerHTML=acts;
+  $('rlist').innerHTML=recAdded.length?'<p class="sub" style="margin:10px 0 4px;font-size:13px">Agregaste:</p>'+recAdded.map(x=>`<div class="payrow"><span>${esc(x.desc||x.cat)} · ${esc(x.cat)}</span><b>−${money(x.amount)}</b><button type="button" class="x" data-rundo="${esc(x.id)}" aria-label="Quitar ${esc(x.desc||x.cat)}">✕</button></div>`).join(''):'';
+}
+function recSaveStart(){const ym=today().slice(0,7),v=num($('rstart').value);const bs=Object.assign({},(S.settings&&S.settings.bankStart)||{});if(isFinite(v))bs[ym]=v;else delete bs[ym];
+  const bank=num($('rbank').value),bc=isFinite(bank)?{amount:bank,date:today(),savOut:!$('rsav').checked}:(S.settings&&S.settings.bankCheck)||null;
+  setSingle('settings',Object.assign({},S.settings||{},{bankStart:bs,bankCheck:bc}))}
+function recAddTx(tx){upsert(tx);recAdded.push(tx);recRender()}
+$('recbtn').addEventListener('click',recOpen);$('recbtn2').addEventListener('click',recOpen);$('rclose').addEventListener('click',()=>{recSaveStart();recClose()});
+$('rmodal').addEventListener('click',e=>{if(e.target.id==='rmodal'){recSaveStart();recClose()}});
+['rbank','rstart'].forEach(id=>$(id).addEventListener('input',recRender));$('rsav').addEventListener('change',recRender);
+$('raddf').addEventListener('submit',e=>{e.preventDefault();const a=num($('ramt').value);if(!(a>0)){$('ramt').focus();return}
+  const d=/^\d{4}-\d{2}-\d{2}$/.test($('rdate').value)?$('rdate').value:today();
+  recAddTx({kind:'tx',id:uid(),type:'gasto',amount:a,cat:$('rcat').value,desc:$('rdesc').value.trim().slice(0,120),date:d});
+  $('ramt').value='';$('rdesc').value='';$('ramt').focus()});
+$('rmodal').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  const ym=today().slice(0,7),c=bankCalc(ym,num($('rstart').value)||0,$('rsav').checked),bank=num($('rbank').value),d=r2(c.exp-bank);
+  if(b.id==='rdone'){recSaveStart();recClose();toast(isFinite(bank)&&Math.abs(d)<0.01?'¡Listo! Tus números cuadran con tu banco.':'Guardado.')}
+  else if(b.id==='rgo'){recSaveStart();recClose();show('movimientos')}
+  else if(b.id==='rrest'&&d>0)recAddTx({kind:'tx',id:uid(),type:'gasto',amount:d,cat:'Otros',desc:'Gastos sin identificar (cuadre con el banco)',date:today()});
+  else if(b.id==='rincfix'&&d<0){upsert({kind:'tx',id:uid(),type:'ingreso',amount:-d,cat:'Otros ingresos',desc:'Ingreso no registrado (cuadre con el banco)',date:today()});recRender()}
+  else if(b.id==='rstartfix'&&d<0){$('rstart').value=r2((num($('rstart').value)||0)-d).toFixed(2);recRender()}
+  else if(b.dataset.rundo){const id=b.dataset.rundo;recAdded=recAdded.filter(x=>x.id!==id);const i=S.tx.findIndex(x=>x.id===id);if(i>=0){S.tx.splice(i,1);drop(id);render()}recRender()}});
+function renderBankLine(){const ym=today().slice(0,7),bc=S.settings&&S.settings.bankCheck,st=bankStart(ym);
+  if(st!=null&&month===ym){const c=bankCalc(ym,Number(st)||0,!(bc&&bc.savOut));
+    $('banktxt').innerHTML=`Debería haber en tu banco: <b>${money(c.exp)}</b>${bc&&bc.date?` · Último cuadre: ${esc(fmtDate(bc.date))}`:''}`}
+  else $('banktxt').textContent='¿No coincide con lo que tienes en el banco?'}
+
 // ============ accesos rápidos ============
 function goRegister(t){
   if(view!=='inicio')show('inicio');
@@ -896,12 +946,13 @@ const TOURS={
   {sel:'#qa',t:'Empieza aquí',d:'Toca “Anotar gasto” cada vez que pagues algo, aunque sea pequeño. “Anotar ingreso” para el dinero que recibes, y “Mi salario” para configurar tu quincena con sus descuentos.'},
   {sel:'#f',t:'Registra en segundos',d:'Escribe el monto, elige la categoría y toca Guardar. Si un gasto te saca del presupuesto, te aviso y te doy alternativas.'},
   {sel:'#resumen .slab',t:'Tu dinero de un vistazo',d:'“Disponible” es lo que te queda en el periodo. Abajo te digo cuánto te queda libre de verdad después de tus pagos fijos y deudas.'},
+  {sel:'#bankline',t:'Cuadra con tu banco',d:'Si lo que ves no coincide con tu cuenta, toca aquí: escribes cuánto tienes de verdad, te digo cuánto falta por anotar y lo agregas en un momento.'},
   {sel:'#pbar',t:'Mes o quincena',d:'Cambia entre el mes completo y cada quincena: todo se recalcula para ese periodo.'},
   {sel:'#resumen .cats',t:'¿En qué se fue el dinero?',d:'Una barra por categoría. Toca “Editar presupuestos” para ponerle un límite a cada una.'},
   {sel:'nav.tabs',t:'Las secciones',d:'Movimientos, Analizar (tu Excel del banco), Metas, Plan (salario, deudas y fijos) y Hábitos (tips). La primera vez que entres a cada una te explico cómo funciona.'},
   {sel:'.appbar .me',t:'Mi cuenta',d:'Tus ajustes, modo oscuro, el versículo, comentarios para mejorar la app y el botón para repetir estos tutoriales.'}],
  movimientos:[
-  {sel:'#list',t:'Todo lo que registraste',d:'Aquí ves los movimientos del mes. Toca uno para editarlo, o la ✕ para borrarlo.'},
+  {sel:'#list',t:'Todo lo que registraste',d:'Aquí ves los movimientos del mes, separados por quincena y por día. Toca ✎ (o el movimiento) para corregir el monto, la categoría o la fecha, y ✕ para borrarlo.'},
   {sel:'#movimientos .tools',t:'Busca y filtra',d:'Encuentra un gasto por su descripción o mira solo una categoría.'},
   {sel:'#mnav',t:'Cambia de mes',d:'Usa las flechas para ver meses anteriores.'}],
  analizar:[
@@ -1107,9 +1158,9 @@ $('ef').addEventListener('submit',e=>{e.preventDefault();if(!editTx)return;
   if(t.type!=='ahorro'){t.type=eType;t.cat=$('ecat').value}
   if(t.breakdown&&(t.amount!==editTx.amount||t.type!=='ingreso'))delete t.breakdown;
   delete t.over;closeEdit();upsert(t);toast('Cambios guardados')});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&editTx)closeEdit();
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&editTx)closeEdit();if(e.key==='Escape'&&$('rmodal').classList.contains('on')){recSaveStart();recClose()}
   if(e.key==='Enter'&&e.target.matches&&e.target.matches('tr[data-edit]'))openEdit(e.target.dataset.edit)});
-$('list').addEventListener('click',e=>{if(e.target.closest('button'))return;const tr=e.target.closest('tr[data-edit]');if(tr)openEdit(tr.dataset.edit)});
+$('list').addEventListener('click',e=>{const eb=e.target.closest('[data-editbtn]');if(eb){openEdit(eb.dataset.editbtn);return}if(e.target.closest('button'))return;const tr=e.target.closest('tr[data-edit]');if(tr)openEdit(tr.dataset.edit)});
 
 // ============ quincena o mes ============
 function setPeriod(p){period=p;try{localStorage.setItem('fg.period',p)}catch(e){}document.querySelectorAll('[data-per]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.per===p));render()}

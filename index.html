@@ -217,6 +217,18 @@ section.band[data-v]+section.band[data-v]:not([hidden]){border-top:1px solid var
 .mlist tr.day td{padding:12px 0 4px;font-size:13px;font-weight:700;color:var(--soft);border-bottom:1px solid var(--line);text-transform:capitalize}
 .fill.q1{background:var(--bar)}.fill.q2{background:var(--pink);border-radius:0 7px 7px 0}
 .qleg{display:flex;gap:14px;font-size:13px;color:var(--soft);margin:-4px 0 10px}.qleg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:-1px}
+.bankline{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;font-size:14px;color:var(--pink)}
+.bankline button{background:transparent;color:var(--snow);border-color:rgba(252,251,251,.45);min-height:40px}.bankline b{color:var(--snow)}
+.rbox{max-width:600px;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto}
+.rhead{display:flex;justify-content:space-between;align-items:center;gap:10px}.rhead .icon{border:0;background:transparent;font-size:20px;min-height:40px;width:40px;padding:0}
+.rgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 14px}@media(max-width:520px){.rgrid{grid-template-columns:minmax(0,1fr)}}
+.rcalc{margin-top:14px;background:var(--card);border-radius:18px;padding:14px 16px}.rcalc .rl{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-variant-numeric:tabular-nums}.rcalc .rl.t{border-top:1px solid var(--line);margin-top:4px;padding-top:7px;font-weight:700}
+.rdiff{margin-top:12px;border-radius:16px;padding:12px 14px;font-weight:600}.rdiff.bad{background:color-mix(in srgb,var(--red) 16%,transparent)}.rdiff.ok{background:color-mix(in srgb,var(--lime) 45%,transparent)}.rdiff.more{background:color-mix(in srgb,var(--pink) 40%,transparent)}
+.rdiff big{display:block;font-size:24px;font-weight:800}
+.radd{display:grid;grid-template-columns:7em minmax(0,1fr) minmax(0,1.2fr);gap:8px}.radd #rdate{grid-column:span 2}.radd button{min-height:44px}
+@media(max-width:520px){.radd{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.radd #rdesc{grid-column:1/-1}.radd #rdate{grid-column:auto}}
+#rlist .payrow{font-size:14px}
+.mlist .c-x{white-space:nowrap}.mlist .c-x .x+.x{margin-inline-start:6px}
 .remind{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--lime);color:#3E2F59;border-radius:20px;padding:14px 18px;margin-bottom:20px}
 .remind p{margin:0;flex:1 1 240px;font-weight:600}
 .remind button{background:#3E2F59;color:var(--snow);border-color:#3E2F59}
@@ -313,6 +325,7 @@ pre,.scroll{overflow-x:auto}
           <div>A metas<strong id="tsave">$0.00</strong></div>
         </div>
         <div class="free" id="free"></div>
+        <div class="bankline" id="bankline"><span id="banktxt">¿Lo que ves aquí no coincide con tu banco?</span><button type="button" id="recbtn">Cuadrar con mi banco</button></div>
       </div>
       <div class="qz" id="qz"></div>
       <div class="cats">
@@ -372,7 +385,7 @@ pre,.scroll{overflow-x:auto}
 </div></section>
 
 <section class="band" id="movimientos" data-v="movimientos"><div class="wrap">
-  <div class="head2"><h2 style="margin:0">Movimientos del mes</h2><button class="link" id="csv">Copiar como CSV</button></div>
+  <div class="head2"><h2 style="margin:0">Movimientos del mes</h2><span style="display:flex;gap:14px;flex-wrap:wrap"><button class="link" id="recbtn2">Cuadrar con mi banco</button><button class="link" id="csv">Copiar como CSV</button></span></div>
   <div class="tools"><input id="q" type="search" placeholder="Buscar descripción…" aria-label="Buscar"><select id="fc" aria-label="Filtrar categoría"></select></div>
   <div id="list"></div>
 </div></section>
@@ -537,6 +550,29 @@ pre,.scroll{overflow-x:auto}
   <p class="err" id="eerr" role="alert"></p>
   <div class="acts"><button class="pri" type="submit">Guardar cambios</button><button type="button" id="ecancel">Cancelar</button><button type="button" class="danger" id="edel">Eliminar</button></div>
 </form></div>
+<div class="modal" id="rmodal" role="dialog" aria-modal="true" aria-labelledby="rtitle"><div class="box rbox">
+  <div class="rhead"><h3 id="rtitle">Cuadrar con mi banco</h3><button type="button" class="icon" id="rclose" aria-label="Cerrar">✕</button></div>
+  <p class="sub" style="margin-top:0">Escribe lo que de verdad tienes hoy y te digo cuánto falta por anotar. Así tus números quedan iguales a los de tu banco.</p>
+  <div class="rgrid">
+    <div><label for="rbank">¿Cuánto tienes hoy en tu cuenta?</label><input id="rbank" class="amt" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+    <div><label for="rstart">¿Con cuánto empezaste el mes?</label><input id="rstart" inputmode="decimal" placeholder="0.00" autocomplete="off"><p class="sub" style="margin:4px 0 0;font-size:13px">Lo que te quedó del mes pasado, el día 1.</p></div>
+  </div>
+  <label class="chk" id="rsavw"><input type="checkbox" id="rsav" checked> Lo que aparté para metas sigue en esta misma cuenta</label>
+  <div id="rcalc"></div>
+  <div id="raddw" hidden>
+    <h4 style="margin:18px 0 4px">Anota lo que falta</h4>
+    <p class="sub" style="margin:0 0 8px;font-size:14px">Agrega cada gasto que no habías registrado. La diferencia se actualiza sola.</p>
+    <form class="radd" id="raddf">
+      <input id="ramt" inputmode="decimal" placeholder="Monto" aria-label="Monto" required autocomplete="off">
+      <select id="rcat" aria-label="Categoría"></select>
+      <input id="rdesc" placeholder="Descripción (opcional)" aria-label="Descripción" autocomplete="off">
+      <input id="rdate" type="date" aria-label="Fecha">
+      <button class="pri" type="submit">Agregar</button>
+    </form>
+    <div id="rlist"></div>
+  </div>
+  <div class="acts" id="racts"></div>
+</div></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="box">
   <h3 id="mtitle"></h3>
   <p id="mbody"></p>
@@ -552,7 +588,7 @@ pre,.scroll{overflow-x:auto}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="config.js?v=22"></script>
-<script src="app.js?v=22"></script>
+<script src="config.js?v=23"></script>
+<script src="app.js?v=23"></script>
 </body>
 </html>
