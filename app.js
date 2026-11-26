@@ -190,7 +190,7 @@ function roomElsewhere(cat,ym,need){const T=totals(ym);let best=null;
 // ============ pintar la app ============
 function render(){
   $('mlabel').textContent=innerWidth<=420?cap(MESES[Number(month.slice(5))-1].slice(0,3))+' '+month.slice(0,4):cap(ymLabel(month));
-  renderTop();renderList();renderSalary();renderDebts();renderFixed();renderSplit();renderGoals();renderWishes();renderAnts();renderTips();renderHist();renderAnalysis();renderAccount();renderVerse();
+  renderTop();renderList();renderSalary();renderDebts();renderFixed();renderSplit();renderGoals();renderWishes();renderAnts();renderTips();renderHist();renderAnalysis();renderAccount();renderVerse();renderQA();
 }
 function renderTop(){
   const T=totalsP(),sc=pScale();
@@ -832,6 +832,109 @@ function showAuth(m){authMode=m||'login';$('app').hidden=true;$('auth').hidden=f
   if(!sb&&!fauth){$('autherr').textContent='La app aún no está conectada a su base de datos. Puedes probarla sin cuenta.'}
 }
 
+// ============ accesos rápidos ============
+function goRegister(t){
+  if(view!=='inicio')show('inicio');
+  if(type!==t){type=t;fillCats()}
+  const f=$('f');const y=f.getBoundingClientRect().top+scrollY-(innerWidth<=980?70:120);
+  try{scrollTo({top:Math.max(0,y),behavior:'smooth'})}catch(e){scrollTo(0,y)}
+  f.classList.remove('flash');void f.offsetWidth;f.classList.add('flash');
+  setTimeout(()=>{try{$('amt').focus({preventScroll:true})}catch(e){$('amt').focus()}},350);
+}
+document.querySelectorAll('[data-qa=gasto],[data-qa=ingreso]').forEach(b=>b.addEventListener('click',()=>goRegister(b.dataset.qa)));
+function renderQA(){const s=salSaved();$('qasal').textContent=s?'Registrar mi pago':'Configura tu quincena'}
+
+// ============ tutoriales ============
+const TOURS={
+ inicio:[
+  {t:'¡Bienvenida a FinGlory!',d:'Te muestro en un minuto cómo usarla. Puedes omitir cuando quieras y volver a verlo desde Mi cuenta.'},
+  {sel:'#qa',t:'Empieza aquí',d:'Toca “Anotar gasto” cada vez que pagues algo, aunque sea pequeño. “Anotar ingreso” para el dinero que recibes, y “Mi salario” para configurar tu quincena con sus descuentos.'},
+  {sel:'#f',t:'Registra en segundos',d:'Escribe el monto, elige la categoría y toca Guardar. Si un gasto te saca del presupuesto, te aviso y te doy alternativas.'},
+  {sel:'#resumen .slab',t:'Tu dinero de un vistazo',d:'“Disponible” es lo que te queda en el periodo. Abajo te digo cuánto te queda libre de verdad después de tus pagos fijos y deudas.'},
+  {sel:'#pbar',t:'Mes o quincena',d:'Cambia entre el mes completo y cada quincena: todo se recalcula para ese periodo.'},
+  {sel:'#resumen .cats',t:'¿En qué se fue el dinero?',d:'Una barra por categoría. Toca “Editar presupuestos” para ponerle un límite a cada una.'},
+  {sel:'nav.tabs',t:'Las secciones',d:'Movimientos, Analizar (tu Excel del banco), Metas, Plan (salario, deudas y fijos) y Hábitos (tips). La primera vez que entres a cada una te explico cómo funciona.'},
+  {sel:'.appbar .me',t:'Mi cuenta',d:'Tus ajustes, modo oscuro, el versículo, comentarios para mejorar la app y el botón para repetir estos tutoriales.'}],
+ movimientos:[
+  {sel:'#list',t:'Todo lo que registraste',d:'Aquí ves los movimientos del mes. Toca uno para editarlo, o la ✕ para borrarlo.'},
+  {sel:'#movimientos .tools',t:'Busca y filtra',d:'Encuentra un gasto por su descripción o mira solo una categoría.'},
+  {sel:'#mnav',t:'Cambia de mes',d:'Usa las flechas para ver meses anteriores.'}],
+ analizar:[
+  {sel:'#drop',t:'Sube tu estado de cuenta',d:'Descarga de tu banca en línea el Excel con fecha, descripción y monto, y súbelo aquí. El archivo se lee solo en tu dispositivo.'},
+  {sel:'#ares',t:'Tu análisis',d:'Te muestro en qué se fue el dinero, te pregunto lo que no entiendo (y recuerdo tus respuestas) y te sugiero un presupuesto para el próximo mes.'}],
+ metas:[
+  {sel:'#gf',t:'Crea una meta con propósito',d:'Ponle nombre, cuánto necesitas, en cuánto tiempo (días, semanas o meses) y para qué. Te digo cuánto apartar por quincena o por mes.'},
+  {sel:'#goals',t:'Aporta a tus metas',d:'Cada vez que apartes dinero, regístralo en la meta y verás tu avance.'},
+  {sel:'#deseos .wrap',t:'Lista de deseos',d:'Antes de comprar algo por impulso, anótalo aquí con un plazo. Si al final lo compras, se registra como gasto.'}],
+ plan:[
+  {sel:'#salario .wrap',t:'Mi salario',d:'Escribe tu salario bruto: calculo Seguro Social, Seguro Educativo, ISR y tus descuentos directos. Cuando cobres, toca registrar y se anota el neto como ingreso.'},
+  {sel:'#deudas .wrap',t:'Préstamos y deudas',d:'Anota el total y la cuota. Cada pago baja el saldo y te digo cuándo terminas de pagar.'},
+  {sel:'#fijos .wrap',t:'Gastos e ingresos fijos',d:'Alquiler, luz, celular… Se descuentan de lo que te queda libre y te recuerdo pagarlos.'},
+  {sel:'#reparto .wrap',t:'Reparto del salario',d:'Decide qué porcentaje de cada pago va a gastos, ahorro, diezmo y más.'}],
+ habitos:[
+  {sel:'#tips .wrap',t:'Tips para ti',d:'Los genero analizando tus movimientos, los que anotas y los del Excel. Entre más registres, mejores serán.'},
+  {sel:'#hormiga .wrap',t:'Gastos hormiga',d:'Gastos pequeños que se repiten y, sumados, pesan.'},
+  {sel:'#historial .wrap',t:'Últimos 6 meses',d:'Compara cuánto entró y salió cada mes.'}],
+ cuenta:[
+  {sel:'#payrollrow',t:'Descuentos de ley',d:'Si eres asalariada/o en Panamá, actívalo para ver el desglose de tu salario.'},
+  {sel:'#fb',t:'Cuéntame qué mejorar',d:'Escríbeme lo que te gustó, lo que no entendiste o lo que le falta a la app.'}]
+};
+const toursDone=()=>{const s=new Set((S.settings&&S.settings.tours)||[]);try{(JSON.parse(localStorage.getItem('fg.tours')||'[]')).forEach(x=>s.add(x))}catch(e){}return s};
+function markTours(list){const s=toursDone();list.forEach(x=>s.add(x));const arr=[...s];try{localStorage.setItem('fg.tours',JSON.stringify(arr))}catch(e){}
+  if(mode&&JSON.stringify(((S.settings&&S.settings.tours)||[]).slice().sort())!==JSON.stringify(arr.slice().sort()))setSingle('settings',Object.assign({},S.settings||{},{tours:arr}))}
+let tour=null;
+function tourEnd(markAll){if(!tour)return;const v=tour.v;['tblock','thole','tpop'].forEach(id=>{const e=$(id);if(e)e.remove()});removeEventListener('resize',tourPlace);removeEventListener('keydown',tourKey,true);tour=null;markTours(markAll?['all',...Object.keys(TOURS)]:[v])}
+function tourKey(e){if(e.key==='Escape'){e.preventDefault();tourEnd(false)}}
+function visible(el){if(!el)return false;const r=el.getBoundingClientRect();return r.width>0&&r.height>0}
+const tourDock=()=>innerWidth<600;
+function tourPlace(){
+  if(!tour)return;const st=tour.steps[tour.i],el=st.sel&&document.querySelector(st.sel),hole=$('thole'),pop=$('tpop');
+  const pw=pop.offsetWidth,ph=pop.offsetHeight,vw=innerWidth,vh=innerHeight,m=12;
+  if(!visible(el)){hole.className='tour-hole none';pop.style.left=Math.round((vw-pw)/2)+'px';pop.style.top=Math.round((vh-ph)/2)+'px';return}
+  const r=el.getBoundingClientRect(),p=8;let top=Math.max(4,r.top-p),bot=Math.min(vh-4,r.bottom+p),y;
+  if(tourDock()){
+    const atTop=r.top+r.height/2>vh/2&&r.top>ph+2*m;
+    y=atTop?m:vh-ph-m;
+    if(atTop)top=Math.max(top,y+ph+m);else bot=Math.min(bot,y-m);
+  }else if(r.height>vh*.6){y=vh-ph-24;var corner=true}
+  else{y=bot+m;if(y+ph>vh-m){y=top-m-ph;if(y<m)y=Math.max(m,vh-ph-m)}}
+  hole.className='tour-hole';Object.assign(hole.style,{left:Math.max(4,r.left-p)+'px',top:top+'px',width:Math.min(vw-8,r.width+2*p)+'px',height:Math.max(0,bot-top)+'px'});
+  const x=tourDock()?Math.round((vw-pw)/2):typeof corner!=='undefined'&&corner?vw-pw-32:Math.min(Math.max(m,r.left+r.width/2-pw/2),vw-pw-m);
+  pop.style.left=Math.round(x)+'px';pop.style.top=Math.round(y)+'px';
+}
+function tourScroll(el){
+  const r=el.getBoundingClientRect(),vh=innerHeight,head=innerWidth<=980?72:130,ph=$('tpop').offsetHeight+24;
+  const room=tourDock()?vh-head-ph:vh-head-ph-24;
+  if(r.top>=head&&r.bottom<=head+room&&!tourDock())return;
+  if(tourDock()&&r.top>=head&&r.bottom<=vh-ph)return;
+  let y=r.top+scrollY-head;if(!tourDock()&&r.height<room)y-=Math.max(0,(room-r.height)/2);
+  try{scrollTo({top:Math.max(0,y),behavior:'instant'})}catch(e){scrollTo(0,Math.max(0,y))}
+}
+function tourShow(){
+  const st=tour.steps[tour.i],n=tour.steps.length,el=st.sel&&document.querySelector(st.sel);
+  const pop=$('tpop');
+  pop.innerHTML=`<p class="tstep">${n>1?`Paso ${tour.i+1} de ${n}`:'Tutorial'}</p><h3 id="ttitle"></h3><p id="tdesc"></p><div class="tacts"><button type="button" id="tskip">Omitir</button><span class="sp"></span>${tour.i>0?'<button type="button" id="tprev">Atrás</button>':''}<button type="button" class="pri" id="tnext">${tour.i<n-1?'Siguiente':'Entendido'}</button></div><button type="button" class="tnever" id="tnever">No mostrar más tutoriales</button>`;
+  $('ttitle').textContent=st.t;$('tdesc').textContent=st.d;
+  $('tskip').onclick=()=>tourEnd(false);$('tnever').onclick=()=>{tourEnd(true);toast('Listo. Puedes volver a verlos desde Mi cuenta.')};
+  $('tnext').onclick=()=>{if(tour.i<n-1){tour.i++;tourShow()}else tourEnd(false)};
+  if($('tprev'))$('tprev').onclick=()=>{tour.i--;tourShow()};
+  if(visible(el))tourScroll(el);
+  tourPlace();setTimeout(tourPlace,80);setTimeout(tourPlace,400);try{$('tnext').focus({preventScroll:true})}catch(e){}
+}
+function tourStart(v,force){
+  if(tour||!mode||!TOURS[v])return;const done=toursDone();if(!force&&(done.has('all')||done.has(v)))return;
+  if(document.querySelector('.modal.on'))return;
+  const steps=TOURS[v].filter(s=>!s.sel||visible(document.querySelector(s.sel)));if(!steps.length)return;
+  tour={v,steps,i:0};
+  const b=document.createElement('div');b.className='tour-block';b.id='tblock';
+  const h=document.createElement('div');h.className='tour-hole';h.id='thole';
+  const p=document.createElement('div');p.className='tour-pop';p.id='tpop';p.setAttribute('role','dialog');p.setAttribute('aria-modal','true');p.setAttribute('aria-labelledby','ttitle');p.setAttribute('aria-describedby','tdesc');
+  document.body.append(b,h,p);addEventListener('resize',tourPlace);addEventListener('keydown',tourKey,true);tourShow();
+}
+let tourT=null;
+function tourMaybe(){clearTimeout(tourT);tourT=setTimeout(()=>tourStart(view),500)}
+$('tourreset').addEventListener('click',()=>{try{localStorage.setItem('fg.tours','[]')}catch(e){}setSingle('settings',Object.assign({},S.settings||{},{tours:[]}));show('inicio');setTimeout(()=>tourStart('inicio',true),400)});
+
 // ============ versículo al abrir ============
 const VERSES=[
 ['Proverbios 3:9-10','Honra á Jehová de tu sustancia, Y de las primicias de todos tus frutos; Y serán llenas tus trojes con abundancia, y tus lagares rebosarán de mosto.'],
@@ -1011,6 +1114,8 @@ function show(v,keepScroll){
   $('mnav').style.visibility=MONTHLY.has(v)?'visible':'hidden';$('pbar').hidden=!PERIODIC.has(v);$('pnote').hidden=v!=='metas';
   if(location.hash!=='#'+v)try{history.replaceState(null,'','#'+v)}catch(e){}
   if(!keepScroll)scrollTo(0,0);
+  if(tour&&tour.v!==v)tourEnd(false);
+  if(mode)tourMaybe();
 }
 addEventListener('hashchange',()=>show(location.hash.slice(1)));
 document.addEventListener('click',e=>{const a=e.target.closest('a[data-view]');if(!a||e.metaKey||e.ctrlKey)return;e.preventDefault();const v=a.dataset.view;if(v!==view){try{history.pushState(null,'','#'+v)}catch(err){}}show(v)});
